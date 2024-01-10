@@ -6,7 +6,7 @@
 /*   By: jegoh <jegoh@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 21:45:15 by jegoh             #+#    #+#             */
-/*   Updated: 2024/01/10 19:32:25 by jegoh            ###   ########.fr       */
+/*   Updated: 2024/01/10 23:39:11 by jegoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include "cub3d.h"
@@ -17,27 +17,37 @@ int	to_coord(int x, int y)
 	return ((int)floor(y) * WIDTH + (int)floor(x));
 }
 
-// TODO, fix all the norm errors such as 4 arguments
-void	draw_line(t_game *game, double x1, double y1, double x2, double y2)
+void	draw_line(t_game *game, t_point start, t_point end)
 {
-	double	deltaX;
-	double	deltaY;
+	double	dx;
+	double	dy;
 	double	step;
 
-	deltaX = x2 - x1;
-	deltaY = y2 - y1;
-	step = (fabs(deltaX) > fabs(deltaY)) ? fabs(deltaX) : fabs(deltaY);
-	deltaX /= step;
-	deltaY /= step;
-	while (fabs(x2 - x1) > 0.01 || fabs(y2 - y1) > 0.01)
+	dx = end.x - start.x;
+	dy = end.y - start.y;
+	step = fabs(dy);
+	if (fabs(dx) > fabs(dy))
+		step = fabs(dx);
+	dx /= step;
+	dy /= step;
+	while (fabs(end.x - start.x) > 0.01 || fabs(end.y - start.y) > 0.01)
 	{
-		game->img.data[to_coord(x1, y1)] = 0xb3b3b3;
-		x1 += deltaX;
-		y1 += deltaY;
+		game->img.data[to_coord(start.x, start.y)] = 0xb3b3b3;
+		start.x += dx;
+		start.y += dy;
 	}
 }
 
-void 	draw_lines(t_game *game)
+t_point	point(double x, double y)
+{
+	t_point	point;
+
+	point.x = x;
+	point.y = y;
+	return (point);
+}
+
+void	draw_lines(t_game *game)
 {
 	int		i;
 	int		j;
@@ -45,23 +55,25 @@ void 	draw_lines(t_game *game)
 	i = 0;
 	while (i < COLS)
 	{
-		draw_line(game, i * TILE_SIZE, 0, i * TILE_SIZE, HEIGHT);
+		draw_line(game, point(i * TILE_SIZE, 0), point(i * TILE_SIZE, HEIGHT));
 		i++;
 	}
-	draw_line(game, COLS * TILE_SIZE - 1, 0, COLS * TILE_SIZE - 1, HEIGHT);
+	draw_line(game, point(COLS * TILE_SIZE - 1, 0),
+		point(COLS * TILE_SIZE - 1, HEIGHT));
 	j = 0;
 	while (j < ROWS)
 	{
-		draw_line(game, 0, j * TILE_SIZE, WIDTH, j * TILE_SIZE);
+		draw_line(game, point(0, j * TILE_SIZE), point(WIDTH, j * TILE_SIZE));
 		j++;
 	}
-	draw_line(game, 0, ROWS * TILE_SIZE - 1, WIDTH, ROWS * TILE_SIZE - 1);
+	draw_line(game, point(0, ROWS * TILE_SIZE - 1),
+		point(WIDTH, ROWS * TILE_SIZE - 1));
 }
 
-void	draw_rectangle(t_game *game, int x, int y)
+void	draw_rectangle(t_game *game, int x, int y, char c)
 {
-	int i;
-	int j;
+	int	i;
+	int	j;
 
 	x *= TILE_SIZE;
 	y *= TILE_SIZE;
@@ -71,7 +83,14 @@ void	draw_rectangle(t_game *game, int x, int y)
 		j = 0;
 		while (j < TILE_SIZE)
 		{
-			game->img.data[(y  + i) * WIDTH + x + j] = 0xFFFFFF;
+			if (c == '1')
+				game->img.data[(y + i) * WIDTH + x + j] = 0xffffff;
+			else if (c == '0')
+				game->img.data[(y + i) * WIDTH + x + j] = 0x111111;
+			else if (c == 'N' || c == 'S' || c == 'E' || c == 'W')
+				game->img.data[(y + i) * WIDTH + x + j] = 0xff1111;
+			else
+				game->img.data[(y + i) * WIDTH + x + j] = 0xaaaaaa;
 			j++;
 		}
 		i++;
@@ -80,8 +99,8 @@ void	draw_rectangle(t_game *game, int x, int y)
 
 void	draw_rectangles(t_game *game)
 {
-	int		i;
-	int		j;
+	int	i;
+	int	j;
 
 	i = 0;
 	while (i < ROWS)
@@ -89,15 +108,14 @@ void	draw_rectangles(t_game *game)
 		j = 0;
 		while (j < COLS)
 		{
-			if (game->map[i][j] == 1)
-				draw_rectangle(game, j, i);
+			draw_rectangle(game, j, i, game->map[i][j]);
 			j++;
 		}
 		i++;
 	}
 }
 
-int ft_close(t_game *game)
+int	ft_close(t_game *game)
 {
 	mlx_destroy_image(game->mlx, game->img.img);
 	mlx_destroy_window(game->mlx, game->win);
@@ -113,22 +131,23 @@ int	deal_key(int key_code, t_game *game)
 	return (0);
 }
 
+// TODO convert this to linked list
 void	game_init(t_game *game)
 {
-	int map[ROWS][COLS] = {
-	{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1},
-	{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1},
-	{1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1},
-	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1},
-	{1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1},
-	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	{1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1},
-	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+	char	map[ROWS][COLS] = {
+		" 11111111111111",
+		"111000000000101",
+		"100001000000101",
+		"111100000001011",
+		"100000000001011",
+		"1000000N1111011",
+		"100000000000011",
+		"100000000000011",
+		"111110000111101",
+		"100000000001111",
+		"111111111111   "
 	};
-	ft_memcpy(game->map, map, sizeof(int) * ROWS * COLS);
+	ft_memcpy(game->map, map, sizeof(char) * ROWS * COLS);
 }
 
 void	window_init(t_game *game)
@@ -144,7 +163,7 @@ void	img_init(t_game *game)
 		&game->img.size_l, &game->img.endian);
 }
 
-int		main_loop(t_game *game)
+int	main_loop(t_game *game)
 {
 	draw_rectangles(game);
 	draw_lines(game);
@@ -152,10 +171,33 @@ int		main_loop(t_game *game)
 	return (0);
 }
 
-int		main(void)
+void	check_arguments(int argc, char **argv)
 {
-	t_game game;
+	char	*extension;
 
+	// need to remove this line afterwards
+	if (argc == 1)
+		return ;
+	if (argc != 2)
+	{
+		ft_putstr_fd("Usage: ", 2);
+		ft_putstr_fd(argv[0], 2);
+		ft_putstr_fd(" <map_file.cub>\n", 2);
+		exit(EXIT_FAILURE);
+	}
+	extension = ft_strrchr(argv[1], '.');
+	if (extension == NULL || ft_strcmp(extension, ".cub") != 0)
+	{
+		ft_putstr_fd("Error: Map file must have a .cub extension\n", 2);
+		exit(EXIT_FAILURE);
+	}
+}
+
+int	main(int argc, char **argv)
+{
+	t_game	game;
+
+	check_arguments(argc, argv);
 	game_init(&game);
 	window_init(&game);
 	img_init(&game);
