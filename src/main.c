@@ -6,7 +6,7 @@
 /*   By: jegoh <jegoh@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 21:45:15 by jegoh             #+#    #+#             */
-/*   Updated: 2024/01/08 13:11:36 by jegoh            ###   ########.fr       */
+/*   Updated: 2024/01/10 19:32:25 by jegoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include "cub3d.h"
@@ -146,7 +146,6 @@ void	img_init(t_game *game)
 
 int		main_loop(t_game *game)
 {
-
 	draw_rectangles(game);
 	draw_lines(game);
 	mlx_put_image_to_window(game->mlx, game->win, game->img.img, 0, 0);
