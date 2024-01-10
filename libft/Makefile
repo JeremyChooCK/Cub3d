@@ -22,12 +22,11 @@ SRC = ft_isalnum.c \
 	ft_memmove.c \
 	ft_memset.c \
 	ft_split.c \
-	ft_split_quote.c \
 	ft_strcmp.c \
 	ft_strjoin.c \
-	ft_strjoin_space.c \
 	ft_strncmp.c \
 	ft_strnlen.c \
+	ft_max.c \
 	ft_min.c \
 	ft_strcat.c \
 	ft_strcpy.c \
@@ -37,6 +36,7 @@ SRC = ft_isalnum.c \
 	ft_strstr.c \
 	ft_strtok.c \
 	ft_substr.c \
+	get_next_line.c \
 
 OBJS := $(SRC:%.c=$(BUILDDIR)/%.o)
 
