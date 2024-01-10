@@ -15,6 +15,7 @@ SRC = ft_isalnum.c \
 	ft_realloc.c \
 	ft_strnew.c \
 	ft_strchr.c \
+	ft_strrchr.c \
 	ft_strdup.c \
 	ft_strncat.c \
 	ft_strndup.c \
