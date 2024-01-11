@@ -6,7 +6,7 @@
 /*   By: jegoh <jegoh@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 21:45:15 by jegoh             #+#    #+#             */
-/*   Updated: 2024/01/11 19:47:47 by jegoh            ###   ########.fr       */
+/*   Updated: 2024/01/11 21:52:20 by jegoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include "cub3d.h"
@@ -108,7 +108,7 @@ void	draw_rectangles(t_game *game)
 		j = 0;
 		while (j < COLS)
 		{
-			draw_rectangle(game, j, i, game->map[i][j]);
+			draw_rectangle(game, j, i, game->maps[i][j]);
 			j++;
 		}
 		i++;
@@ -134,20 +134,20 @@ int	deal_key(int key_code, t_game *game)
 // TODO convert this to linked list
 void	game_init(t_game *game)
 {
-	char	map[ROWS][COLS];
+	char	maps[ROWS][COLS];
 
-	ft_strcpy(map[0], " 11111111111111");
-	ft_strcpy(map[1], "111000000000101");
-	ft_strcpy(map[2], "100001000000101");
-	ft_strcpy(map[3], "111100000001011");
-	ft_strcpy(map[4], "100000000001011");
-	ft_strcpy(map[5], "1000000N1111011");
-	ft_strcpy(map[6], "100000000000011");
-	ft_strcpy(map[7], "100000000000011");
-	ft_strcpy(map[8], "111110000111101");
-	ft_strcpy(map[9], "100000000001111");
-	ft_strcpy(map[10], "111111111111   ");
-	ft_memcpy(game->map, map, sizeof(char) * ROWS * COLS);
+	ft_strcpy(maps[0], " 11111111111111");
+	ft_strcpy(maps[1], "111000000000101");
+	ft_strcpy(maps[2], "100001000000101");
+	ft_strcpy(maps[3], "111100000001011");
+	ft_strcpy(maps[4], "100000000001011");
+	ft_strcpy(maps[5], "1000000N1111011");
+	ft_strcpy(maps[6], "100000000000011");
+	ft_strcpy(maps[7], "100000000000011");
+	ft_strcpy(maps[8], "111110000111101");
+	ft_strcpy(maps[9], "100000000001111");
+	ft_strcpy(maps[10], "111111111111   ");
+	ft_memcpy(game->maps, maps, sizeof(char) * ROWS * COLS);
 }
 
 void	window_init(t_game *game)
