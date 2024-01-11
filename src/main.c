@@ -6,7 +6,7 @@
 /*   By: jegoh <jegoh@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 21:45:15 by jegoh             #+#    #+#             */
-/*   Updated: 2024/01/10 23:39:11 by jegoh            ###   ########.fr       */
+/*   Updated: 2024/01/11 19:47:47 by jegoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include "cub3d.h"
@@ -134,19 +134,19 @@ int	deal_key(int key_code, t_game *game)
 // TODO convert this to linked list
 void	game_init(t_game *game)
 {
-	char	map[ROWS][COLS] = {
-		" 11111111111111",
-		"111000000000101",
-		"100001000000101",
-		"111100000001011",
-		"100000000001011",
-		"1000000N1111011",
-		"100000000000011",
-		"100000000000011",
-		"111110000111101",
-		"100000000001111",
-		"111111111111   "
-	};
+	char	map[ROWS][COLS];
+
+	ft_strcpy(map[0], " 11111111111111");
+	ft_strcpy(map[1], "111000000000101");
+	ft_strcpy(map[2], "100001000000101");
+	ft_strcpy(map[3], "111100000001011");
+	ft_strcpy(map[4], "100000000001011");
+	ft_strcpy(map[5], "1000000N1111011");
+	ft_strcpy(map[6], "100000000000011");
+	ft_strcpy(map[7], "100000000000011");
+	ft_strcpy(map[8], "111110000111101");
+	ft_strcpy(map[9], "100000000001111");
+	ft_strcpy(map[10], "111111111111   ");
 	ft_memcpy(game->map, map, sizeof(char) * ROWS * COLS);
 }
 
@@ -160,7 +160,7 @@ void	img_init(t_game *game)
 {
 	game->img.img = mlx_new_image(game->mlx, WIDTH, HEIGHT);
 	game->img.data = (int *)mlx_get_data_addr(game->img.img, &game->img.bpp,
-		&game->img.size_l, &game->img.endian);
+			&game->img.size_l, &game->img.endian);
 }
 
 int	main_loop(t_game *game)
@@ -175,9 +175,11 @@ void	check_arguments(int argc, char **argv)
 {
 	char	*extension;
 
-	// need to remove this line afterwards
 	if (argc == 1)
+	{
+		printf("Argument check temporary disabled.\n");
 		return ;
+	}
 	if (argc != 2)
 	{
 		ft_putstr_fd("Usage: ", 2);
@@ -201,8 +203,8 @@ int	main(int argc, char **argv)
 	game_init(&game);
 	window_init(&game);
 	img_init(&game);
-	mlx_hook(game.win, X_EVENT_KEY_PRESS, 1L<<0, &deal_key, &game);
-	mlx_hook(game.win, X_EVENT_KEY_EXIT, 1L<<2, &ft_close, &game);
+	mlx_hook(game.win, X_EVENT_KEY_PRESS, 1L << 0, &deal_key, &game);
+	mlx_hook(game.win, X_EVENT_KEY_EXIT, 1L << 2, &ft_close, &game);
 	mlx_loop_hook(game.mlx, &main_loop, &game);
 	mlx_loop(game.mlx);
 }
