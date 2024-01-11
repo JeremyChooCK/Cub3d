@@ -6,7 +6,7 @@
 /*   By: jegoh <jegoh@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 21:34:32 by jegoh             #+#    #+#             */
-/*   Updated: 2024/01/10 22:50:45 by jegoh            ###   ########.fr       */
+/*   Updated: 2024/01/11 21:53:03 by jegoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #ifndef CUB3D_H
@@ -55,13 +55,14 @@ typedef struct s_img
 	int		endian;
 }	t_img;
 
-// TODO consider malloc the map
+// TODO consider malloc maps
 typedef struct s_game
 {
 	void	*mlx;
 	void	*win;
 	t_img	img;
-	char	map[ROWS][COLS];
+	t_map	map;
+	char	maps[ROWS][COLS];
 }	t_game;
 
 typedef struct s_point
@@ -69,5 +70,7 @@ typedef struct s_point
 	double	x;
 	double	y;
 }	t_point;
+
+// TODO populate function prototype here
 
 #endif
