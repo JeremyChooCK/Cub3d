@@ -12,108 +12,6 @@
 #include "cub3d.h"
 
 // This main file need to redo, for now the code are boilerplates.
-int	to_coord(int x, int y)
-{
-	return ((int)floor(y) * WIDTH + (int)floor(x));
-}
-
-void	draw_line(t_game *game, t_point start, t_point end)
-{
-	double	dx;
-	double	dy;
-	double	step;
-
-	dx = end.x - start.x;
-	dy = end.y - start.y;
-	step = fabs(dy);
-	if (fabs(dx) > fabs(dy))
-		step = fabs(dx);
-	dx /= step;
-	dy /= step;
-	while (fabs(end.x - start.x) > 0.01 || fabs(end.y - start.y) > 0.01)
-	{
-		game->img.data[to_coord(start.x, start.y)] = 0xb3b3b3;
-		start.x += dx;
-		start.y += dy;
-	}
-}
-
-t_point	point(double x, double y)
-{
-	t_point	point;
-
-	point.x = x;
-	point.y = y;
-	return (point);
-}
-
-void	draw_lines(t_game *game)
-{
-	int		i;
-	int		j;
-
-	i = 0;
-	while (i < COLS)
-	{
-		draw_line(game, point(i * TILE_SIZE, 0), point(i * TILE_SIZE, HEIGHT));
-		i++;
-	}
-	draw_line(game, point(COLS * TILE_SIZE - 1, 0),
-		point(COLS * TILE_SIZE - 1, HEIGHT));
-	j = 0;
-	while (j < ROWS)
-	{
-		draw_line(game, point(0, j * TILE_SIZE), point(WIDTH, j * TILE_SIZE));
-		j++;
-	}
-	draw_line(game, point(0, ROWS * TILE_SIZE - 1),
-		point(WIDTH, ROWS * TILE_SIZE - 1));
-}
-
-void	draw_rectangle(t_game *game, int x, int y, char c)
-{
-	int	i;
-	int	j;
-
-	x *= TILE_SIZE;
-	y *= TILE_SIZE;
-	i = 0;
-	while (i < TILE_SIZE)
-	{
-		j = 0;
-		while (j < TILE_SIZE)
-		{
-			if (c == '1')
-				game->img.data[(y + i) * WIDTH + x + j] = 0xffffff;
-			else if (c == '0')
-				game->img.data[(y + i) * WIDTH + x + j] = 0x111111;
-			else if (c == 'N' || c == 'S' || c == 'E' || c == 'W')
-				game->img.data[(y + i) * WIDTH + x + j] = 0xff1111;
-			else
-				game->img.data[(y + i) * WIDTH + x + j] = 0xaaaaaa;
-			j++;
-		}
-		i++;
-	}
-}
-
-void	draw_rectangles(t_game *game)
-{
-	int	i;
-	int	j;
-
-	i = 0;
-	while (i < ROWS)
-	{
-		j = 0;
-		while (j < COLS)
-		{
-			draw_rectangle(game, j, i, game->maps[i][j]);
-			j++;
-		}
-		i++;
-	}
-}
 
 int	ft_close(t_game *game)
 {
@@ -124,11 +22,216 @@ int	ft_close(t_game *game)
 	exit(0);
 }
 
-int	deal_key(int key_code, t_game *game)
+int deal_key(int key_code, t_game *game)
 {
-	if (key_code == KEY_ESC)
-		ft_close(game);
-	return (0);
+    if (key_code == KEY_ESC)
+        ft_close(game);
+    // else if (key_code == KEY_W) // Move forward
+    // {
+    //     if (!game->map[(int)(game->player.x + game->player.dir_x * MOVE_SPEED)][(int)(game->player.y)])
+    //         game->player.x += game->player.dir_x * MOVE_SPEED;
+    //     if (!game->map[(int)(game->player.x)][(int)(game->player.y + game->player.dir_y * MOVE_SPEED)])
+    //         game->player.y += game->player.dir_y * MOVE_SPEED;
+    // }
+    // else if (key_code == KEY_S) // Move backward
+    // {
+    //     if (!game->map[(int)(game->player.x - game->player.dir_x * MOVE_SPEED)][(int)(game->player.y)])
+    //         game->player.x -= game->player.dir_x * MOVE_SPEED;
+    //     if (!game->map[(int)(game->player.x)][(int)(game->player.y - game->player.dir_y * MOVE_SPEED)])
+    //         game->player.y -= game->player.dir_y * MOVE_SPEED;
+    // }
+    // else if (key_code == KEY_A) // Strafe left
+    // {
+    //     double leftX = game->player.x - game->player.plane_x * MOVE_SPEED;
+    //     double leftY = game->player.y - game->player.plane_y * MOVE_SPEED;
+    //     if (!game->map[(int)leftX][(int)game->player.y])
+    //         game->player.x = leftX;
+    //     if (!game->map[(int)game->player.x][(int)leftY])
+    //         game->player.y = leftY;
+    // }
+    // else if (key_code == KEY_D) // Strafe right
+    // {
+    //     double rightX = game->player.x + game->player.plane_x * MOVE_SPEED;
+    //     double rightY = game->player.y + game->player.plane_y * MOVE_SPEED;
+    //     if (!game->map[(int)rightX][(int)game->player.y])
+    //         game->player.x = rightX;
+    //     if (!game->map[(int)game->player.x][(int)rightY])
+    //         game->player.y = rightY;
+    // }
+	// if (key_code == KEY_RIGHT) // Rotate to the left
+    // {
+    //     // Rotating both the direction vector and the camera plane
+    //     double oldDirX = game->player.dir_x;
+    //     game->player.dir_x = game->player.dir_x * cos(ROT_SPEED) - game->player.dir_y * sin(ROT_SPEED);
+    //     game->player.dir_y = oldDirX * sin(ROT_SPEED) + game->player.dir_y * cos(ROT_SPEED);
+
+    //     double oldPlaneX = game->player.plane_x;
+    //     game->player.plane_x = game->player.plane_x * cos(ROT_SPEED) - game->player.plane_y * sin(ROT_SPEED);
+    //     game->player.plane_y = oldPlaneX * sin(ROT_SPEED) + game->player.plane_y * cos(ROT_SPEED);
+    // }
+    // else if (key_code == KEY_LEFT) // Rotate to the right
+    // {
+    //     // Rotating both the direction vector and the camera plane
+    //     double oldDirX = game->player.dir_x;
+    //     game->player.dir_x = game->player.dir_x * cos(-ROT_SPEED) - game->player.dir_y * sin(-ROT_SPEED);
+    //     game->player.dir_y = oldDirX * sin(-ROT_SPEED) + game->player.dir_y * cos(-ROT_SPEED);
+
+    //     double oldPlaneX = game->player.plane_x;
+    //     game->player.plane_x = game->player.plane_x * cos(-ROT_SPEED) - game->player.plane_y * sin(-ROT_SPEED);
+    //     game->player.plane_y = oldPlaneX * sin(-ROT_SPEED) + game->player.plane_y * cos(-ROT_SPEED);
+    // }
+
+    return 0;
+}
+
+
+
+// void raycasting(t_game *game)
+// {
+//     for (int x = 0; x < WIDTH; x++)
+//     {
+//         double cameraX = 2 * x / (double)WIDTH - 1;
+//         double rayDirX = game->player.dir_x + game->player.plane_x * cameraX;
+//         double rayDirY = game->player.dir_y + game->player.plane_y * cameraX;
+
+//         int mapX = (int)game->player.x;
+//         int mapY = (int)game->player.y;
+
+//         double sideDistX, sideDistY;
+
+//         double deltaDistX = fabs(1 / rayDirX);
+//         double deltaDistY = fabs(1 / rayDirY);
+//         double perpWallDist;
+
+//         int stepX, stepY;
+//         int hit = 0; // Was there a wall hit?
+//         int side; // Was a NS or a EW wall hit?
+
+//         // Step direction and initial sideDist calculation
+//         if (rayDirX < 0) {
+//             stepX = -1;
+//             sideDistX = (game->player.x - mapX) * deltaDistX;
+//         } else {
+//             stepX = 1;
+//             sideDistX = (mapX + 1.0 - game->player.x) * deltaDistX;
+//         }
+//         if (rayDirY < 0) {
+//             stepY = -1;
+//             sideDistY = (game->player.y - mapY) * deltaDistY;
+//         } else {
+//             stepY = 1;
+//             sideDistY = (mapY + 1.0 - game->player.y) * deltaDistY;
+//         }
+
+//         // DDA Algorithm
+//         while (hit == 0) {
+//             if (sideDistX < sideDistY) {
+//                 sideDistX += deltaDistX;
+//                 mapX += stepX;
+//                 side = 0;
+//             } else {
+//                 sideDistY += deltaDistY;
+//                 mapY += stepY;
+//                 side = 1;
+//             }
+//             // Check if ray has hit a wall
+//             if (game->map[mapX][mapY] > 0) hit = 1;
+//         }
+
+//         // Calculate distance to the wall
+//         if (side == 0) perpWallDist = (mapX - game->player.x + (1 - stepX) / 2) / rayDirX;
+//         else perpWallDist = (mapY - game->player.y + (1 - stepY) / 2) / rayDirY;
+
+//         // Calculate height of line to draw on screen
+//         int lineHeight = (int)(HEIGHT / perpWallDist);
+
+//         // Calculate lowest and highest pixel to fill in current stripe
+//         int drawStart = -lineHeight / 2 + HEIGHT / 2;
+//         if (drawStart < 0) drawStart = 0;
+//         int drawEnd = lineHeight / 2 + HEIGHT / 2;
+//         if (drawEnd >= HEIGHT) drawEnd = HEIGHT - 1;
+
+//         // Choose wall texture
+//         int texNum = game->map[mapX][mapY] - 1; // assuming 0 is an empty space and textures are 1, 2, 3, 4...
+
+//         // Calculate texture coordinates
+//         double wallX;
+//         if (side == 0) wallX = game->player.y + perpWallDist * rayDirY;
+//         else wallX = game->player.x + perpWallDist * rayDirX;
+//         wallX -= floor(wallX);
+
+// 		int texWidth = game->textures[texNum].width;
+// 		int texHeight = game->textures[texNum].height;
+
+//         int texX = (int)(wallX * (double)(texWidth));
+//         if (side == 0 && rayDirX > 0) texX = texWidth - texX - 1;
+//         if (side == 1 && rayDirY < 0) texX = texWidth - texX - 1;
+
+//         // How much to increase the texture coordinate per screen pixel
+//         double step = 1.0 * texHeight / lineHeight;
+//         // Starting texture coordinate
+//         double texPos = (drawStart - HEIGHT / 2 + lineHeight / 2) * step;
+//         for (int y = drawStart; y < drawEnd; y++)
+//         {
+//             // Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
+//             int texY = (int)texPos & (texHeight - 1);
+//             texPos += step;
+//             int color = game->textures[texNum].data[texHeight * texY + texX];
+//             // make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
+//             if (side == 1) color = (color >> 1) & 8355711;
+//             game->img.data[y * WIDTH + x] = color;
+//         }
+//     }
+// }
+
+
+
+// void	player_init(t_game *game)
+// {
+// 	int	i;
+// 	int	j;
+
+// 	i = 0;
+// 	j = 0;
+// 	while (i < ROWS)
+// 	{
+// 		j = 0;
+// 		while (j < COLS)
+// 		{
+// 			if (game->map[i][j] == 'N')
+// 			{
+// 				game->player.x = j;
+// 				game->player.y = i;
+// 				game->player.dir_x = 0.5;
+// 				game->player.dir_y = 1;
+// 				game->player.plane_x = 0;
+// 				game->player.plane_y = 0.66;
+// 				return ;
+// 			}
+// 			j++;
+// 		}
+// 		i++;
+// 	}
+// }
+
+
+// Function to load a texture from an XPM file
+void load_texture(t_game *game, int texIndex, char *path, void *mlx)
+{
+    t_texture *tex = &game->textures[texIndex];
+    int width, height;
+
+    // Using mlx_xpm_file_to_image to load the texture
+    tex->data = (int *)mlx_xpm_file_to_image(mlx, path, &width, &height);
+	printf("%i\n", *(tex->data));
+    if (!tex->data)
+    {
+        ft_putstr_fd("Error loading texture\n", 2);
+        exit(EXIT_FAILURE);
+    }
+
+    tex->width = width;
+    tex->height = height;
 }
 
 // TODO convert this to linked list
@@ -148,6 +251,25 @@ void	game_init(t_game *game)
 	ft_strcpy(maps[9], "100000000001111");
 	ft_strcpy(maps[10], "111111111111   ");
 	ft_memcpy(game->maps, maps, sizeof(char) * ROWS * COLS);
+    // int map[ROWS][COLS] = {
+	// {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+	// {1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1},
+	// {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1},
+	// {1, 1, 1, 1, 0, 0, 0, 'N', 0, 0, 1, 0, 1, 0, 1},
+	// {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1},
+	// {1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1},
+	// {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	// {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	// {1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1},
+	// {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	// {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+	// };
+	// ft_memcpy(game->map, map, sizeof(int) * ROWS * COLS);
+	// player_init(game);
+	// load_texture(game, 0, "./img/so.xpm", game->mlx); //north
+    // load_texture(game, 1, "./img/so.xpm", game->mlx); //south
+    // load_texture(game, 2, "./img/bluestone.xpm", game->mlx); //east
+    // load_texture(game, 3, "./img/bluestone.xpm", game->mlx); //west
 }
 
 void	window_init(t_game *game)
@@ -163,13 +285,17 @@ void	img_init(t_game *game)
 			&game->img.size_l, &game->img.endian);
 }
 
-int	main_loop(t_game *game)
+
+int main_loop(t_game *game)
 {
-	draw_rectangles(game);
-	draw_lines(game);
-	mlx_put_image_to_window(game->mlx, game->win, game->img.img, 0, 0);
-	return (0);
+	// if (game->img.img != NULL) {
+    //     mlx_destroy_image(game->mlx, game->img.img);
+    // }
+    // raycasting(game);
+    mlx_put_image_to_window(game->mlx, game->win, game->img.img, 0, 0);
+    return (0);
 }
+
 
 void	check_arguments(int argc, char **argv)
 {
@@ -200,11 +326,30 @@ int	main(int argc, char **argv)
 	t_game	game;
 
 	check_arguments(argc, argv);
-	game_init(&game);
 	window_init(&game);
+	game_init(&game);
 	img_init(&game);
 	mlx_hook(game.win, X_EVENT_KEY_PRESS, 1L << 0, &deal_key, &game);
 	mlx_hook(game.win, X_EVENT_KEY_EXIT, 1L << 2, &ft_close, &game);
 	mlx_loop_hook(game.mlx, &main_loop, &game);
 	mlx_loop(game.mlx);
 }
+
+// int main(void)
+// {
+//     void *mlx_ptr;
+//     void *win_ptr;
+//     void *img_ptr;
+// 	int width;
+// 	int height;
+
+//     mlx_ptr = mlx_init();
+//     win_ptr = mlx_new_window(mlx_ptr, 800, 600, "My Window");
+//     img_ptr = mlx_xpm_file_to_image(mlx_ptr, "./img/we.xpm", &width, &height);
+    
+//     mlx_put_image_to_window(mlx_ptr, win_ptr, img_ptr, 100, 100);
+    
+//     mlx_loop(mlx_ptr);
+    
+//     return (0);
+// }

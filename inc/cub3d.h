@@ -34,6 +34,8 @@
 # define KEY_DOWN 0xff54
 # define KEY_LEFT 0xff51
 # define KEY_RIGHT 0xff53
+#define MOVE_SPEED 0.1
+#define ROT_SPEED 0.05
 
 // TODO cleanup unnessary macro over time
 # define WIN_WIDTH 800
@@ -46,6 +48,13 @@
 # define WIDTH 480
 # define HEIGHT 352
 
+#define RED 0x00FF0000  // Red:   Alpha 00, Red FF, Green 00, Blue 00
+#define GREEN 0x0000FF00  // Green: Alpha 00, Red 00, Green FF, Blue 00
+#define BLUE 0x000000FF  // Blue:  Alpha 00, Red 00, Green 00, Blue FF
+#define WHITE 0x00FFFFFF  // White: Alpha 00, Red FF, Green FF, Blue FF
+#define BLACK 0x00000000  // Black: Alpha 00, Red 00, Green 00, Blue 00
+#define YELLOW 0x00FFFF00  // Yellow: Alpha 00, Red FF, Green FF, Blue 00
+
 typedef struct s_img
 {
 	void	*img;
@@ -56,6 +65,24 @@ typedef struct s_img
 }	t_img;
 
 // TODO consider malloc maps
+typedef struct 
+{
+	double	x;
+	double	y;
+	double 	dir_x;
+	double	dir_y;
+	double	plane_x;
+	double	plane_y;
+} Player;
+
+typedef struct s_texture
+{
+    int *data; // Pointer to texture data
+    int width;
+    int height;
+} t_texture;
+
+// TODO consider malloc the map
 typedef struct s_game
 {
 	void	*mlx;
@@ -63,6 +90,9 @@ typedef struct s_game
 	t_img	img;
 	t_map	map;
 	char	maps[ROWS][COLS];
+	// int	map[ROWS][COLS];
+	Player	player;
+	t_texture textures[4];
 }	t_game;
 
 typedef struct s_point
