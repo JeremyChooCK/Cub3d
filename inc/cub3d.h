@@ -6,7 +6,7 @@
 /*   By: jegoh <jegoh@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 21:34:32 by jegoh             #+#    #+#             */
-/*   Updated: 2024/01/11 21:53:03 by jegoh            ###   ########.fr       */
+/*   Updated: 2024/01/12 23:05:47 by jegoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #ifndef CUB3D_H
@@ -34,10 +34,9 @@
 # define KEY_DOWN 0xff54
 # define KEY_LEFT 0xff51
 # define KEY_RIGHT 0xff53
-#define MOVE_SPEED 0.1
-#define ROT_SPEED 0.05
+# define MOVE_SPEED 0.1
+# define ROT_SPEED 0.05
 
-// TODO cleanup unnessary macro over time
 # define WIN_WIDTH 800
 # define WIN_HEIGHT 600
 # define IMG_WIDTH 400
@@ -48,12 +47,18 @@
 # define WIDTH 480
 # define HEIGHT 352
 
-#define RED 0x00FF0000  // Red:   Alpha 00, Red FF, Green 00, Blue 00
-#define GREEN 0x0000FF00  // Green: Alpha 00, Red 00, Green FF, Blue 00
-#define BLUE 0x000000FF  // Blue:  Alpha 00, Red 00, Green 00, Blue FF
-#define WHITE 0x00FFFFFF  // White: Alpha 00, Red FF, Green FF, Blue FF
-#define BLACK 0x00000000  // Black: Alpha 00, Red 00, Green 00, Blue 00
-#define YELLOW 0x00FFFF00  // Yellow: Alpha 00, Red FF, Green FF, Blue 00
+// Red:   Alpha 00, Red FF, Green 00, Blue 00
+# define RED 0x00FF0000
+// Green: Alpha 00, Red 00, Green FF, Blue 00
+# define GREEN 0x0000FF00
+// Blue:  Alpha 00, Red 00, Green 00, Blue FF
+# define BLUE 0x000000FF
+// White: Alpha 00, Red FF, Green FF, Blue FF
+# define WHITE 0x00FFFFFF
+// Black: Alpha 00, Red 00, Green 00, Blue 00
+# define BLACK 0x00000000
+// Yellow: Alpha 00, Red FF, Green FF, Blue 00
+# define YELLOW 0x00FFFF00
 
 typedef struct s_img
 {
@@ -64,35 +69,33 @@ typedef struct s_img
 	int		endian;
 }	t_img;
 
-// TODO consider malloc maps
-typedef struct 
+typedef struct s_player
 {
 	double	x;
 	double	y;
-	double 	dir_x;
+	double	dir_x;
 	double	dir_y;
 	double	plane_x;
 	double	plane_y;
-} Player;
+}	t_player;
 
+// Pointer to texture data
 typedef struct s_texture
 {
-    int *data; // Pointer to texture data
-    int width;
-    int height;
-} t_texture;
+	int	*data;
+	int	width;
+	int	height;
+}	t_texture;
 
-// TODO consider malloc the map
 typedef struct s_game
 {
-	void	*mlx;
-	void	*win;
-	t_img	img;
-	// t_map	map;
-	// char	maps[ROWS][COLS];
-	int	map[ROWS][COLS];
-	Player	player;
-	t_texture textures[4];
+	void		*mlx;
+	void		*win;
+	t_img		img;
+	t_map		*read_map;
+	int			map[ROWS][COLS];
+	t_player	player;
+	t_texture	textures[4];
 }	t_game;
 
 typedef struct s_point
@@ -101,6 +104,16 @@ typedef struct s_point
 	double	y;
 }	t_point;
 
-// TODO populate function prototype here
+int		ft_close(t_game *game);
+int		deal_key(int key_code, t_game *game);
+void	clear_image(t_game *game);
+void	raycasting(t_game *game);
+void	player_init(t_game *game);
+void	load_texture(t_game *game, int tex_index, char *path, void *mlx);
+void	game_init(t_game *game);
+void	window_init(t_game *game);
+void	img_init(t_game *game);
+int		main_loop(t_game *game);
+void	check_arguments(int argc, char **argv);
 
 #endif

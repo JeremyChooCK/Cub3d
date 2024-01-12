@@ -6,94 +6,125 @@
 /*   By: jegoh <jegoh@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 21:45:15 by jegoh             #+#    #+#             */
-/*   Updated: 2024/01/11 21:52:20 by jegoh            ###   ########.fr       */
+/*   Updated: 2024/01/12 23:06:09 by jegoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include "cub3d.h"
 
-// This main file need to redo, for now the code are boilerplates.
+void	free_game(t_game *game)
+{
+	int	i;
+
+	if (game == NULL)
+		return ;
+	if (game->mlx != NULL)
+		free(game->mlx);
+	if (game->img.data != NULL)
+		free(game->img.data);
+	if (game->img.img != NULL)
+		free(game->img.img);
+	i = 0;
+	while (i < 4)
+	{
+		if (game->textures[i].data != NULL)
+			free(game->textures[i].data);
+		i++;
+	}
+	free(game);
+}
 
 int	ft_close(t_game *game)
 {
 	mlx_destroy_image(game->mlx, game->img.img);
 	mlx_destroy_window(game->mlx, game->win);
 	mlx_destroy_display(game->mlx);
-	free(game->mlx);
+	free_game(game);
 	exit(0);
 }
 
-int deal_key(int key_code, t_game *game)
+int	deal_key(int key_code, t_game *game)
 {
-    if (key_code == KEY_ESC)
-        ft_close(game);
-    else if (key_code == KEY_W) // Move forward
-    {
-        if (!game->map[(int)(game->player.x + game->player.dir_x * MOVE_SPEED)][(int)(game->player.y)])
-            game->player.x += game->player.dir_x * MOVE_SPEED;
-        if (!game->map[(int)(game->player.x)][(int)(game->player.y + game->player.dir_y * MOVE_SPEED)])
-            game->player.y += game->player.dir_y * MOVE_SPEED;
-    }
-    else if (key_code == KEY_S) // Move backward
-    {
-        if (!game->map[(int)(game->player.x - game->player.dir_x * MOVE_SPEED)][(int)(game->player.y)])
-            game->player.x -= game->player.dir_x * MOVE_SPEED;
-        if (!game->map[(int)(game->player.x)][(int)(game->player.y - game->player.dir_y * MOVE_SPEED)])
-            game->player.y -= game->player.dir_y * MOVE_SPEED;
-    }
-    else if (key_code == KEY_A) // Strafe left
-    {
-        double leftX = game->player.x - game->player.plane_x * MOVE_SPEED;
-        double leftY = game->player.y - game->player.plane_y * MOVE_SPEED;
-        if (!game->map[(int)leftX][(int)game->player.y])
-            game->player.x = leftX;
-        if (!game->map[(int)game->player.x][(int)leftY])
-            game->player.y = leftY;
-    }
-    else if (key_code == KEY_D) // Strafe right
-    {
-        double rightX = game->player.x + game->player.plane_x * MOVE_SPEED;
-        double rightY = game->player.y + game->player.plane_y * MOVE_SPEED;
-        if (!game->map[(int)rightX][(int)game->player.y])
-            game->player.x = rightX;
-        if (!game->map[(int)game->player.x][(int)rightY])
-            game->player.y = rightY;
-    }
+	double	leftx;
+	double	lefty;
+
+	if (key_code == KEY_ESC)
+		ft_close(game);
+	else if (key_code == KEY_W) // Move forward
+	{
+		if (!game->map[(int)(game->player.x + game->player.dir_x * MOVE_SPEED)][(int)(game->player.y)])
+			game->player.x += game->player.dir_x * MOVE_SPEED;
+		if (!game->map[(int)(game->player.x)][(int)(game->player.y + game->player.dir_y * MOVE_SPEED)])
+			game->player.y += game->player.dir_y * MOVE_SPEED;
+	}
+	else if (key_code == KEY_S) // Move backward
+	{
+		if (!game->map[(int)(game->player.x - game->player.dir_x * MOVE_SPEED)][(int)(game->player.y)])
+			game->player.x -= game->player.dir_x * MOVE_SPEED;
+		if (!game->map[(int)(game->player.x)][(int)(game->player.y - game->player.dir_y * MOVE_SPEED)])
+			game->player.y -= game->player.dir_y * MOVE_SPEED;
+	}
+	else if (key_code == KEY_A) // Strafe left
+	{
+		leftx = game->player.x - game->player.plane_x * MOVE_SPEED;
+		lefty = game->player.y - game->player.plane_y * MOVE_SPEED;
+		if (!game->map[(int)leftx][(int)game->player.y])
+			game->player.x = leftx;
+		if (!game->map[(int)game->player.x][(int)lefty])
+			game->player.y = lefty;
+	}
+	else if (key_code == KEY_D) // Strafe right
+	{
+		double rightX = game->player.x + game->player.plane_x * MOVE_SPEED;
+		double rightY = game->player.y + game->player.plane_y * MOVE_SPEED;
+		if (!game->map[(int)rightX][(int)game->player.y])
+			game->player.x = rightX;
+		if (!game->map[(int)game->player.x][(int)rightY])
+			game->player.y = rightY;
+	}
 	if (key_code == KEY_RIGHT) // Rotate to the left
-    {
-        // Rotating both the direction vector and the camera plane
-        double oldDirX = game->player.dir_x;
-        game->player.dir_x = game->player.dir_x * cos(ROT_SPEED) - game->player.dir_y * sin(ROT_SPEED);
-        game->player.dir_y = oldDirX * sin(ROT_SPEED) + game->player.dir_y * cos(ROT_SPEED);
+	{
+		// Rotating both the direction vector and the camera plane
+		double oldDirX = game->player.dir_x;
+		game->player.dir_x = game->player.dir_x * cos(ROT_SPEED) - game->player.dir_y * sin(ROT_SPEED);
+		game->player.dir_y = oldDirX * sin(ROT_SPEED) + game->player.dir_y * cos(ROT_SPEED);
 
-        double oldPlaneX = game->player.plane_x;
-        game->player.plane_x = game->player.plane_x * cos(ROT_SPEED) - game->player.plane_y * sin(ROT_SPEED);
-        game->player.plane_y = oldPlaneX * sin(ROT_SPEED) + game->player.plane_y * cos(ROT_SPEED);
-    }
-    else if (key_code == KEY_LEFT) // Rotate to the right
-    {
-        // Rotating both the direction vector and the camera plane
-        double oldDirX = game->player.dir_x;
-        game->player.dir_x = game->player.dir_x * cos(-ROT_SPEED) - game->player.dir_y * sin(-ROT_SPEED);
-        game->player.dir_y = oldDirX * sin(-ROT_SPEED) + game->player.dir_y * cos(-ROT_SPEED);
+		double oldPlaneX = game->player.plane_x;
+		game->player.plane_x = game->player.plane_x * cos(ROT_SPEED) - game->player.plane_y * sin(ROT_SPEED);
+		game->player.plane_y = oldPlaneX * sin(ROT_SPEED) + game->player.plane_y * cos(ROT_SPEED);
+	}
+	else if (key_code == KEY_LEFT) // Rotate to the right
+	{
+		// Rotating both the direction vector and the camera plane
+		double oldDirX = game->player.dir_x;
+		game->player.dir_x = game->player.dir_x * cos(-ROT_SPEED) - game->player.dir_y * sin(-ROT_SPEED);
+		game->player.dir_y = oldDirX * sin(-ROT_SPEED) + game->player.dir_y * cos(-ROT_SPEED);
 
-        double oldPlaneX = game->player.plane_x;
-        game->player.plane_x = game->player.plane_x * cos(-ROT_SPEED) - game->player.plane_y * sin(-ROT_SPEED);
-        game->player.plane_y = oldPlaneX * sin(-ROT_SPEED) + game->player.plane_y * cos(-ROT_SPEED);
-    }
-
-    return 0;
+		double oldPlaneX = game->player.plane_x;
+		game->player.plane_x = game->player.plane_x * cos(-ROT_SPEED) - game->player.plane_y * sin(-ROT_SPEED);
+		game->player.plane_y = oldPlaneX * sin(-ROT_SPEED) + game->player.plane_y * cos(-ROT_SPEED);
+	}
+	return (0);
 }
 
-void clear_image(t_game *game) {
-    int x, y;
-    for (y = 0; y < HEIGHT; y++) {
-        for (x = 0; x < WIDTH; x++) {
-            game->img.data[y * WIDTH + x] = 0x000000; // Black color
-        }
-    }
+void	clear_image(t_game *game)
+{
+	int	x;
+	int	y;
+
+	y = 0;
+	while (y < HEIGHT)
+	{
+		x = 0;
+		while (x < WIDTH)
+		{
+			game->img.data[y * WIDTH + x] = 0x000000;
+			x++;
+		}
+		y++;
+	}
 }
 
-void raycasting(t_game *game)
+void	raycasting(t_game *game)
 {
     clear_image(game);
     for (int x = 0; x < WIDTH; x++)
@@ -192,8 +223,6 @@ void raycasting(t_game *game)
     }
 }
 
-
-
 void	player_init(t_game *game)
 {
 	int	i;
@@ -222,12 +251,12 @@ void	player_init(t_game *game)
 	}
 }
 
-
 // Function to load a texture from an XPM file
-void load_texture(t_game *game, int texIndex, char *path, void *mlx)
+void	load_texture(t_game *game, int tex_index, char *path, void *mlx)
 {
-    t_texture *tex = &game->textures[texIndex];
-    int width, height;
+	t_texture	*tex = &game->textures[tex_index];
+	int	width;
+	int	height;
 
     // Using mlx_xpm_file_to_image to load the texture
     tex->data = (int *)mlx_xpm_file_to_image(mlx, path, &width, &height);
@@ -237,28 +266,12 @@ void load_texture(t_game *game, int texIndex, char *path, void *mlx)
         ft_putstr_fd("Error loading texture\n", 2);
         exit(EXIT_FAILURE);
     }
-
     tex->width = width;
     tex->height = height;
 }
 
-// TODO convert this to linked list
 void	game_init(t_game *game)
 {
-	// char	maps[ROWS][COLS];
-
-	// ft_strcpy(maps[0], " 11111111111111");
-	// ft_strcpy(maps[1], "111000000000101");
-	// ft_strcpy(maps[2], "100001000000101");
-	// ft_strcpy(maps[3], "111100000001011");
-	// ft_strcpy(maps[4], "100000000001011");
-	// ft_strcpy(maps[5], "1000000N1111011");
-	// ft_strcpy(maps[6], "100000000000011");
-	// ft_strcpy(maps[7], "100000000000011");
-	// ft_strcpy(maps[8], "111110000111101");
-	// ft_strcpy(maps[9], "100000000001111");
-	// ft_strcpy(maps[10], "111111111111   ");
-	// ft_memcpy(game->maps, maps, sizeof(char) * ROWS * COLS);
     int map[ROWS][COLS] = {
 	{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 	{1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1},
@@ -272,6 +285,7 @@ void	game_init(t_game *game)
 	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 	{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
 	};
+
 	ft_memcpy(game->map, map, sizeof(int) * ROWS * COLS);
 	player_init(game);
 	load_texture(game, 0, "./img/so.xpm", game->mlx); //north
@@ -290,11 +304,11 @@ void	img_init(t_game *game)
 {
 	game->img.img = mlx_new_image(game->mlx, WIDTH, HEIGHT);
 	game->img.data = (int *)mlx_get_data_addr(game->img.img, &game->img.bpp,
-			&game->img.size_l, &game->img.endian);
+		&game->img.size_l, &game->img.endian);
 }
 
 
-int main_loop(t_game *game)
+int	main_loop(t_game *game)
 {
 	// if (game->img.img != NULL) {
     //     mlx_destroy_image(game->mlx, game->img.img);
@@ -303,7 +317,6 @@ int main_loop(t_game *game)
     mlx_put_image_to_window(game->mlx, game->win, game->img.img, 0, 0);
     return (0);
 }
-
 
 void	check_arguments(int argc, char **argv)
 {
@@ -329,18 +342,64 @@ void	check_arguments(int argc, char **argv)
 	}
 }
 
+void	init_game(t_game **game, char **argv)
+{
+	int		i;
+	int		fd;
+	char	*buff;
+
+	*game = (t_game *)malloc(sizeof(t_game));
+	if (*game == NULL)
+		exit(1);
+	(*game)->mlx = NULL;
+	(*game)->win = NULL;
+	(*game)->img.img = NULL;
+	(*game)->img.data = NULL;
+	(*game)->img.size_l = 0;
+	(*game)->img.bpp = 0;
+	(*game)->img.endian = 0;
+	ft_memset((*game)->map, 0, sizeof(int) * ROWS * COLS);
+	(*game)->player.x = 0.0;
+	(*game)->player.y = 0.0;
+	(*game)->player.dir_x = 1.0;
+	(*game)->player.dir_y = 0.0;
+	(*game)->player.plane_x = 0.0;
+	(*game)->player.plane_y = 0.66;
+	i = 0;
+	while (i < 4)
+	{
+		(*game)->textures[i].data = NULL;
+		(*game)->textures[i].width = 0;
+		(*game)->textures[i].height = 0;
+		i++;
+	}
+	if (argv[1])
+	{
+		fd = open(argv[1], O_RDONLY);
+		buff = get_next_line(fd);
+		while(buff)
+		{
+			if (ft_strlen(buff) > 0 && buff[ft_strlen(buff) - 1] == '\n')
+				buff[ft_strlen(buff) - 1] = '\0';
+			ft_lstadd_back(&((*game)->read_map), ft_lstnew(buff));
+			buff = get_next_line(fd);
+		}
+	}
+	window_init(*game);
+	game_init(*game);
+	img_init(*game);
+}
+
 int	main(int argc, char **argv)
 {
-	t_game	game;
+	t_game	*game;
 
 	check_arguments(argc, argv);
-	window_init(&game);
-	game_init(&game);
-	img_init(&game);
-	mlx_hook(game.win, X_EVENT_KEY_PRESS, 1L << 0, &deal_key, &game);
-	mlx_hook(game.win, X_EVENT_KEY_EXIT, 1L << 2, &ft_close, &game);
-	mlx_loop_hook(game.mlx, &main_loop, &game);
-	mlx_loop(game.mlx);
+	init_game(&game, argv);
+	mlx_hook(game->win, X_EVENT_KEY_PRESS, 1L << 0, &deal_key, game);
+	mlx_hook(game->win, X_EVENT_KEY_EXIT, 1L << 2, &ft_close, game);
+	mlx_loop_hook(game->mlx, &main_loop, game);
+	mlx_loop(game->mlx);
 }
 
 // int main(void)
@@ -354,10 +413,10 @@ int	main(int argc, char **argv)
 //     mlx_ptr = mlx_init();
 //     win_ptr = mlx_new_window(mlx_ptr, 800, 600, "My Window");
 //     img_ptr = mlx_xpm_file_to_image(mlx_ptr, "./img/we.xpm", &width, &height);
-    
+
 //     mlx_put_image_to_window(mlx_ptr, win_ptr, img_ptr, 100, 100);
-    
+
 //     mlx_loop(mlx_ptr);
-    
+
 //     return (0);
 // }
