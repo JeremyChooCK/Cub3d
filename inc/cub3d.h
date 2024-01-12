@@ -88,9 +88,9 @@ typedef struct s_game
 	void	*mlx;
 	void	*win;
 	t_img	img;
-	t_map	map;
-	char	maps[ROWS][COLS];
-	// int	map[ROWS][COLS];
+	// t_map	map;
+	// char	maps[ROWS][COLS];
+	int	map[ROWS][COLS];
 	Player	player;
 	t_texture textures[4];
 }	t_game;
