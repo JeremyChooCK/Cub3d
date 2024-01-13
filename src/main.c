@@ -81,7 +81,7 @@ int	deal_key(int key_code, t_game *game)
 		if (!game->map[(int)game->player.x][(int)rightY])
 			game->player.y = rightY;
 	}
-	if (key_code == KEY_RIGHT) // Rotate to the left
+	if (key_code == KEY_LEFT) // Rotate to the left
 	{
 		// Rotating both the direction vector and the camera plane
 		double oldDirX = game->player.dir_x;
@@ -96,7 +96,7 @@ int	deal_key(int key_code, t_game *game)
         
         printf("plane_x: %f, plane_y: %f\n", game->player.plane_x, game->player.plane_y);
 	}
-	else if (key_code == KEY_LEFT) // Rotate to the right
+	else if (key_code == KEY_RIGHT) // Rotate to the right
 	{
 		// Rotating both the direction vector and the camera plane
 		double oldDirX = game->player.dir_x;
@@ -199,7 +199,7 @@ void	raycasting(t_game *game)
 
         // Choose wall texture
         int texNum = game->map[mapX][mapY] - 1; // assuming 0 is an empty space and textures are 1, 2, 3, 4...
-        if (texNum > 3) texNum = 3; // Prevents segfaults (for now...), temporary solution
+        if (texNum > 3) texNum = 0; // Prevents segfaults (for now...), temporary solution
         // Calculate texture coordinates
         double wallX;
         if (side == 0) wallX = game->player.y + perpWallDist * rayDirY;
@@ -224,7 +224,7 @@ void	raycasting(t_game *game)
             texPos += step;
             int color = game->textures[texNum].data[texHeight * texY + texX];
             // make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
-            // if (side == 1) color = (color >> 1) & 8355711;
+            if (side == 1) color = (color >> 1) & 8355711;
             game->img.data[y * WIDTH + x] = color;
         }
     }
@@ -246,8 +246,8 @@ void	player_init(t_game *game)
 			{
 				game->player.x = j;
 				game->player.y = i;
-				game->player.dir_x = 0.5;
-				game->player.dir_y = 1;
+				game->player.dir_x = -1;
+				game->player.dir_y = 0;
 				game->player.plane_x = 0;
 				game->player.plane_y = 0.66;
 				return ;
