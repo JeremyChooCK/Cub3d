@@ -88,9 +88,13 @@ int	deal_key(int key_code, t_game *game)
 		game->player.dir_x = game->player.dir_x * cos(ROT_SPEED) - game->player.dir_y * sin(ROT_SPEED);
 		game->player.dir_y = oldDirX * sin(ROT_SPEED) + game->player.dir_y * cos(ROT_SPEED);
 
-		double oldPlaneX = game->player.plane_x;
+        printf("dir_x: %f, dir_y: %f\n", game->player.dir_x, game->player.dir_y);
+		
+        double oldPlaneX = game->player.plane_x;
 		game->player.plane_x = game->player.plane_x * cos(ROT_SPEED) - game->player.plane_y * sin(ROT_SPEED);
 		game->player.plane_y = oldPlaneX * sin(ROT_SPEED) + game->player.plane_y * cos(ROT_SPEED);
+        
+        printf("plane_x: %f, plane_y: %f\n", game->player.plane_x, game->player.plane_y);
 	}
 	else if (key_code == KEY_LEFT) // Rotate to the right
 	{
@@ -98,10 +102,13 @@ int	deal_key(int key_code, t_game *game)
 		double oldDirX = game->player.dir_x;
 		game->player.dir_x = game->player.dir_x * cos(-ROT_SPEED) - game->player.dir_y * sin(-ROT_SPEED);
 		game->player.dir_y = oldDirX * sin(-ROT_SPEED) + game->player.dir_y * cos(-ROT_SPEED);
-
-		double oldPlaneX = game->player.plane_x;
+        
+        // printf("dir AFTER : dir_x: %f, dir_y: %f\n", game->player.dir_x, game->player.dir_y);
+        double oldPlaneX = game->player.plane_x;
 		game->player.plane_x = game->player.plane_x * cos(-ROT_SPEED) - game->player.plane_y * sin(-ROT_SPEED);
 		game->player.plane_y = oldPlaneX * sin(-ROT_SPEED) + game->player.plane_y * cos(-ROT_SPEED);
+
+        // printf("plane AFTER : plane_x: %f, plane_y: %f\n", game->player.plane_x, game->player.plane_y);
 	}
 	return (0);
 }
@@ -192,7 +199,7 @@ void	raycasting(t_game *game)
 
         // Choose wall texture
         int texNum = game->map[mapX][mapY] - 1; // assuming 0 is an empty space and textures are 1, 2, 3, 4...
-
+        if (texNum > 3) texNum = 3; // Prevents segfaults (for now...), temporary solution
         // Calculate texture coordinates
         double wallX;
         if (side == 0) wallX = game->player.y + perpWallDist * rayDirY;
@@ -217,7 +224,7 @@ void	raycasting(t_game *game)
             texPos += step;
             int color = game->textures[texNum].data[texHeight * texY + texX];
             // make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
-            if (side == 1) color = (color >> 1) & 8355711;
+            // if (side == 1) color = (color >> 1) & 8355711;
             game->img.data[y * WIDTH + x] = color;
         }
     }
