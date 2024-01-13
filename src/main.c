@@ -84,13 +84,9 @@ int	deal_key(int key_code, t_game *game)
 		game->player.dir_x = game->player.dir_x * cos(ROT_SPEED) - game->player.dir_y * sin(ROT_SPEED);
 		game->player.dir_y = oldDirX * sin(ROT_SPEED) + game->player.dir_y * cos(ROT_SPEED);
 
-        printf("dir_x: %f, dir_y: %f\n", game->player.dir_x, game->player.dir_y);
-		
         double oldPlaneX = game->player.plane_x;
 		game->player.plane_x = game->player.plane_x * cos(ROT_SPEED) - game->player.plane_y * sin(ROT_SPEED);
 		game->player.plane_y = oldPlaneX * sin(ROT_SPEED) + game->player.plane_y * cos(ROT_SPEED);
-        
-        printf("plane_x: %f, plane_y: %f\n", game->player.plane_x, game->player.plane_y);
 	}
 	else if (key_code == KEY_RIGHT) // Rotate to the right
 	{
@@ -99,12 +95,9 @@ int	deal_key(int key_code, t_game *game)
 		game->player.dir_x = game->player.dir_x * cos(-ROT_SPEED) - game->player.dir_y * sin(-ROT_SPEED);
 		game->player.dir_y = oldDirX * sin(-ROT_SPEED) + game->player.dir_y * cos(-ROT_SPEED);
         
-        // printf("dir AFTER : dir_x: %f, dir_y: %f\n", game->player.dir_x, game->player.dir_y);
         double oldPlaneX = game->player.plane_x;
 		game->player.plane_x = game->player.plane_x * cos(-ROT_SPEED) - game->player.plane_y * sin(-ROT_SPEED);
 		game->player.plane_y = oldPlaneX * sin(-ROT_SPEED) + game->player.plane_y * cos(-ROT_SPEED);
-
-        // printf("plane AFTER : plane_x: %f, plane_y: %f\n", game->player.plane_x, game->player.plane_y);
 	}
 	return (0);
 }
@@ -240,6 +233,7 @@ void	player_init(t_game *game)
 		{
 			if (game->map[i][j] == 'N')
 			{
+                game->map[i][j] = 0;
 				game->player.x = j;
 				game->player.y = i;
 				game->player.dir_x = -1;
@@ -277,15 +271,15 @@ void	game_init(t_game *game)
 {
     int map[ROWS][COLS] = {
 	{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-	{1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1},
-	{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1},
-	{1, 1, 1, 1, 0, 0, 0, 'N', 0, 0, 1, 0, 1, 0, 1},
-	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1},
-	{1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1},
+	{1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 'N', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	{1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1},
 	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 	{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
 	};
 
