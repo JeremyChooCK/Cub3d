@@ -6,14 +6,14 @@
 /*   By: jechoo <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/07 10:39:28 by jechoo            #+#    #+#             */
-/*   Updated: 2024/01/07 12:57:09 by jegoh            ###   ########.fr       */
+/*   Updated: 2024/01/13 13:13:20 by jegoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include "libft.h"
 
 char	*ft_strchr(const char *s, int c)
 {
-	while (*s != '\0')
+	while (s && *s != '\0')
 	{
 		if (*s == (char)c)
 			return ((char *)s);
