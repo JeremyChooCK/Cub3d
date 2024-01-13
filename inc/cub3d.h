@@ -6,7 +6,7 @@
 /*   By: jegoh <jegoh@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 21:34:32 by jegoh             #+#    #+#             */
-/*   Updated: 2024/01/12 23:05:47 by jegoh            ###   ########.fr       */
+/*   Updated: 2024/01/13 14:23:07 by jegoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #ifndef CUB3D_H
@@ -82,9 +82,10 @@ typedef struct s_player
 // Pointer to texture data
 typedef struct s_texture
 {
-	int	*data;
-	int	width;
-	int	height;
+	int		*data;
+	int		width;
+	int		height;
+	char	*path;
 }	t_texture;
 
 typedef struct s_game
@@ -94,6 +95,8 @@ typedef struct s_game
 	t_img		img;
 	t_map		*read_map;
 	int			map[ROWS][COLS];
+	int			*floor_color;
+	int			*ceiling_color;
 	t_player	player;
 	t_texture	textures[4];
 }	t_game;

@@ -6,7 +6,7 @@
 /*   By: jegoh <jegoh@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 21:45:15 by jegoh             #+#    #+#             */
-/*   Updated: 2024/01/12 23:06:09 by jegoh            ###   ########.fr       */
+/*   Updated: 2024/01/13 14:26:32 by jegoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include "cub3d.h"
@@ -19,10 +19,6 @@ void	free_game(t_game *game)
 		return ;
 	if (game->mlx != NULL)
 		free(game->mlx);
-	if (game->img.data != NULL)
-		free(game->img.data);
-	if (game->img.img != NULL)
-		free(game->img.img);
 	i = 0;
 	while (i < 4)
 	{
@@ -349,6 +345,66 @@ void	check_arguments(int argc, char **argv)
 	}
 }
 
+int	*parse_color(char *str)
+{
+	char	**colors;
+	int		*rgb;
+	int		i;
+
+	colors = ft_split(str, ',');
+	rgb = malloc(3 * sizeof(int));
+	if (rgb == NULL)
+		exit(1);
+	i = 0;
+	while (i < 3)
+	{
+		rgb[i] = atoi(colors[i]);
+		i++;
+	}
+	ft_freesplit(colors);
+	return (rgb);
+}
+
+void	parse_cub_file(t_game *game)
+{
+	char	tempMap[ROWS][COLS];
+    int row = 0;
+    t_map *current = game->read_map;
+
+	ft_memset(tempMap, 0, sizeof(tempMap));
+    while (current != NULL) {
+        char *line = current->content;
+        char **splitLine = ft_split(line, ' ');
+
+        if (splitLine[0] != NULL && splitLine[1] != NULL) {
+            if (ft_strcmp(splitLine[0], "NO") == 0) {
+                game->textures[0].path = strdup(splitLine[1]);
+            } else if (ft_strcmp(splitLine[0], "SO") == 0) {
+                game->textures[1].path = strdup(splitLine[1]);
+            } else if (ft_strcmp(splitLine[0], "WE") == 0) {
+                game->textures[2].path = strdup(splitLine[1]);
+            } else if (ft_strcmp(splitLine[0], "EA") == 0) {
+                game->textures[3].path = strdup(splitLine[1]);
+            } else if (ft_strcmp(splitLine[0], "F") == 0) {
+                game->floor_color = parse_color(splitLine[1]);
+            } else if (ft_strcmp(splitLine[0], "C") == 0) {
+                game->ceiling_color = parse_color(splitLine[1]);
+            } else {
+                ft_strncpy(tempMap[row], line, COLS);
+                row++;
+            }
+        }
+        ft_freesplit(splitLine);
+        current = current->next;
+    }
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < COLS; j++) {
+            game->map[i][j] = tempMap[i][j] == '1' ? 1 : 0;
+        }
+    }
+}
+
+// TODO once parser is done properly, remove if loop for argv
 void	init_game(t_game **game, char **argv)
 {
 	int		i;
@@ -391,6 +447,7 @@ void	init_game(t_game **game, char **argv)
 			ft_lstadd_back(&((*game)->read_map), ft_lstnew(buff));
 			buff = get_next_line(fd);
 		}
+		parse_cub_file(*game);
 	}
 	window_init(*game);
 	game_init(*game);
