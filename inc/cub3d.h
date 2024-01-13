@@ -26,6 +26,7 @@
 # define X_EVENT_KEY_EXIT 17
 
 # define KEY_ESC 0xff1b
+# define KEY_Q 0x71
 # define KEY_W 0x77
 # define KEY_A 0x61
 # define KEY_S 0x73

@@ -6,7 +6,7 @@
 /*   By: jegoh <jegoh@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 21:45:15 by jegoh             #+#    #+#             */
-/*   Updated: 2024/01/13 14:26:32 by jegoh            ###   ########.fr       */
+/*   Updated: 2024/01/13 18:44:06 by jegoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include "cub3d.h"
@@ -42,8 +42,10 @@ int	deal_key(int key_code, t_game *game)
 {
 	double	leftx;
 	double	lefty;
+	double	rightx;
+	double	righty;
 
-	if (key_code == KEY_ESC)
+	if (key_code == KEY_ESC || key_code == KEY_Q)
 		ft_close(game);
 	else if (key_code == KEY_W) // Move forward
 	{
@@ -70,12 +72,12 @@ int	deal_key(int key_code, t_game *game)
 	}
 	else if (key_code == KEY_D) // Strafe right
 	{
-		double rightX = game->player.x + game->player.plane_x * MOVE_SPEED;
-		double rightY = game->player.y + game->player.plane_y * MOVE_SPEED;
-		if (!game->map[(int)rightX][(int)game->player.y])
-			game->player.x = rightX;
-		if (!game->map[(int)game->player.x][(int)rightY])
-			game->player.y = rightY;
+		rightx = game->player.x + game->player.plane_x * MOVE_SPEED;
+		righty = game->player.y + game->player.plane_y * MOVE_SPEED;
+		if (!game->map[(int)rightx][(int)game->player.y])
+			game->player.x = rightx;
+		if (!game->map[(int)game->player.x][(int)righty])
+			game->player.y = righty;
 	}
 	if (key_code == KEY_LEFT) // Rotate to the left
 	{
@@ -122,10 +124,10 @@ void	clear_image(t_game *game)
 
 void	raycasting(t_game *game)
 {
-    clear_image(game);
-    for (int x = 0; x < WIDTH; x++)
-    {
-        double cameraX = 2 * x / (double)WIDTH - 1;
+	clear_image(game);
+	for (int x = 0; x < WIDTH; x++)
+	{
+		double cameraX = 2 * x / (double)WIDTH - 1;
         double rayDirX = game->player.dir_x + game->player.plane_x * cameraX;
         double rayDirY = game->player.dir_y + game->player.plane_y * cameraX;
 
@@ -143,21 +145,26 @@ void	raycasting(t_game *game)
         int side; // Was a NS or a EW wall hit?
 
         // Step direction and initial sideDist calculation
-        if (rayDirX < 0) {
-            stepX = -1;
-            sideDistX = (game->player.x - mapX) * deltaDistX;
-        } else {
-            stepX = 1;
-            sideDistX = (mapX + 1.0 - game->player.x) * deltaDistX;
-        }
-        if (rayDirY < 0) {
-            stepY = -1;
-            sideDistY = (game->player.y - mapY) * deltaDistY;
-        } else {
+		if (rayDirX < 0)
+		{
+			stepX = -1;
+			sideDistX = (game->player.x - mapX) * deltaDistX;
+		}
+		else
+		{
+			stepX = 1;
+			sideDistX = (mapX + 1.0 - game->player.x) * deltaDistX;
+		}
+		if (rayDirY < 0)
+		{
+			stepY = -1;
+			sideDistY = (game->player.y - mapY) * deltaDistY;
+		}
+		else
+		{
             stepY = 1;
             sideDistY = (mapY + 1.0 - game->player.y) * deltaDistY;
         }
-
         // DDA Algorithm
         while (hit == 0) {
             if (sideDistX < sideDistY) {
@@ -269,7 +276,7 @@ void	load_texture(t_game *game, int tex_index, char *path, void *mlx)
 
 void	game_init(t_game *game)
 {
-    int map[ROWS][COLS] = {
+	int map[ROWS][COLS] = {
 	{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 	{1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
@@ -284,11 +291,17 @@ void	game_init(t_game *game)
 	};
 
 	ft_memcpy(game->map, map, sizeof(int) * ROWS * COLS);
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < COLS; j++) {
+            printf("%d ", game->map[i][j]);
+        }
+        printf("\n");
+    }
 	player_init(game);
 	load_texture(game, 0, "./img/so.xpm", game->mlx); //north
-    load_texture(game, 1, "./img/so.xpm", game->mlx); //south
-    load_texture(game, 2, "./img/bluestone.xpm", game->mlx); //east
-    load_texture(game, 3, "./img/bluestone.xpm", game->mlx); //west
+	load_texture(game, 1, "./img/so.xpm", game->mlx); //south
+	load_texture(game, 2, "./img/bluestone.xpm", game->mlx); //east
+	load_texture(game, 3, "./img/bluestone.xpm", game->mlx); //west
 }
 
 void	window_init(t_game *game)
@@ -361,41 +374,87 @@ int	*parse_color(char *str)
 
 void	parse_cub_file(t_game *game)
 {
-	char	tempMap[ROWS][COLS];
-    int row = 0;
-    t_map *current = game->read_map;
+	char	temp_map[ROWS][COLS];
+	char	*line;
+	char	**split_line;
+	int		row;
+	int		i;
+	int		j;
+	int		mapcheck;
+	t_map	*current;
 
-	ft_memset(tempMap, 0, sizeof(tempMap));
-    while (current != NULL) {
-        char *line = current->content;
-        char **splitLine = ft_split(line, ' ');
-
-        if (splitLine[0] != NULL && splitLine[1] != NULL) {
-            if (ft_strcmp(splitLine[0], "NO") == 0) {
-                game->textures[0].path = strdup(splitLine[1]);
-            } else if (ft_strcmp(splitLine[0], "SO") == 0) {
-                game->textures[1].path = strdup(splitLine[1]);
-            } else if (ft_strcmp(splitLine[0], "WE") == 0) {
-                game->textures[2].path = strdup(splitLine[1]);
-            } else if (ft_strcmp(splitLine[0], "EA") == 0) {
-                game->textures[3].path = strdup(splitLine[1]);
-            } else if (ft_strcmp(splitLine[0], "F") == 0) {
-                game->floor_color = parse_color(splitLine[1]);
-            } else if (ft_strcmp(splitLine[0], "C") == 0) {
-                game->ceiling_color = parse_color(splitLine[1]);
-            } else {
-                ft_strncpy(tempMap[row], line, COLS);
-                row++;
-            }
-        }
-        ft_freesplit(splitLine);
-        current = current->next;
-    }
-    for (int i = 0; i < ROWS; i++) {
-        for (int j = 0; j < COLS; j++) {
-            game->map[i][j] = tempMap[i][j] == '1' ? 1 : 0;
-        }
-    }
+	row = 0;
+	mapcheck = 0;
+	current = game->read_map;
+	ft_memset(temp_map, 0, sizeof(temp_map));
+	while (current != NULL)
+	{
+		line = current->content;
+		printf("line: '%s'\n", line);
+		split_line = ft_split(line, ' ');
+		if (mapcheck == 1)
+		{
+			ft_memcpy(temp_map[row], line, COLS);
+			row++;
+		}
+		if (split_line[0] != NULL && split_line[1] != NULL && mapcheck == 0)
+		{
+			if (ft_strcmp(split_line[0], "NO") == 0)
+				game->textures[0].path = ft_strdup(split_line[1]);
+			else if (ft_strcmp(split_line[0], "SO") == 0)
+				game->textures[1].path = ft_strdup(split_line[1]);
+			else if (ft_strcmp(split_line[0], "EA") == 0)
+				game->textures[2].path = ft_strdup(split_line[1]);
+			else if (ft_strcmp(split_line[0], "WE") == 0)
+				game->textures[3].path = ft_strdup(split_line[1]);
+			else if (ft_strcmp(split_line[0], "F") == 0)
+				game->floor_color = parse_color(split_line[1]);
+			else if (ft_strcmp(split_line[0], "C") == 0)
+				game->ceiling_color = parse_color(split_line[1]);
+			else
+			{
+				printf("Error: Invalid line in .cub file\n");
+				ft_close(game);
+			}
+		}
+		if (ft_strcmp(line, "") == 0 && mapcheck == 0)
+			mapcheck = 1;
+		ft_freesplit(split_line);
+		current = current->next;
+	}
+	i = 0;
+	while (i < ROWS)
+	{
+		j = 0;
+		while (j < COLS)
+		{
+			if (temp_map[i][j] == '0')
+				game->map[i][j] = 0;
+			else if (temp_map[i][j] == '1')
+				game->map[i][j] = 1;
+			else if (temp_map[i][j] == 'N')
+				game->map[i][j] = 'N';
+			else if (temp_map[i][j] == 'S')
+				game->map[i][j] = 'S';
+			else if (temp_map[i][j] == 'E')
+				game->map[i][j] = 'E';
+			else if (temp_map[i][j] == 'W')
+				game->map[i][j] = 'W';
+			else
+			{
+				printf("Error: Invalid character in map\n");
+				ft_close(game);
+			}
+			j++;
+		}
+		i++;
+	}
+	for (i = 0; i < ROWS; i++) {
+	    for (j = 0; j < COLS; j++) {
+    	    printf("%d ", game->map[i][j]);
+    	}
+    	printf("\n");
+	}
 }
 
 // TODO once parser is done properly, remove if loop for argv
@@ -430,6 +489,7 @@ void	init_game(t_game **game, char **argv)
 		(*game)->textures[i].height = 0;
 		i++;
 	}
+	window_init(*game);
 	if (argv[1])
 	{
 		fd = open(argv[1], O_RDONLY);
@@ -442,9 +502,14 @@ void	init_game(t_game **game, char **argv)
 			buff = get_next_line(fd);
 		}
 		parse_cub_file(*game);
+		player_init(*game);
+		load_texture(*game, 0, (*game)->textures[0].path, (*game)->mlx); //north
+		load_texture(*game, 1, (*game)->textures[1].path, (*game)->mlx); //south
+		load_texture(*game, 2, (*game)->textures[2].path, (*game)->mlx); //east
+		load_texture(*game, 3, (*game)->textures[3].path, (*game)->mlx); //west
 	}
-	window_init(*game);
-	game_init(*game);
+	else
+		game_init(*game);
 	img_init(*game);
 }
 
