@@ -29,7 +29,7 @@ void	free_game(t_game *game)
 	free(game);
 }
 
-int	ft_close(t_game *game, int exit_code)
+void	ft_close(t_game *game, int exit_code)
 {
 	if (game->mlx)
 	{
@@ -42,7 +42,13 @@ int	ft_close(t_game *game, int exit_code)
 	exit(exit_code);
 }
 
-// TODO line is too long, need to reduce length.
+int ft_close_game(t_game *game)
+{
+	ft_close(game, EXIT_SUCCESS);
+	return (0);
+}
+
+// TODO: line is too long, need to reduce length.
 int	deal_key(int key_code, t_game *game)
 {
 	double	leftx;
@@ -144,8 +150,7 @@ void	raycasting(t_game *game)
 		int stepX, stepY;
 		int hit = 0; // Was there a wall hit?
 		int side; // Was a NS or a EW wall hit?
-
-        // Step direction and initial sideDist calculation
+		// Step direction and initial sideDist calculation
 		if (rayDirX < 0)
 		{
 			stepX = -1;
@@ -217,8 +222,8 @@ void	raycasting(t_game *game)
 			texX = texWidth - texX - 1;
 		if (side == 1 && rayDirY < 0)
 			texX = texWidth - texX - 1;
-        // How much to increase the texture coordinate per screen pixel
-        double step = 1.0 * texHeight / lineHeight;
+		// How much to increase the texture coordinate per screen pixel
+		double step = 1.0 * texHeight / lineHeight;
         // Starting texture coordinate
         double texPos = (drawStart - HEIGHT / 2 + lineHeight / 2) * step;
         for (int y = drawStart; y < drawEnd; y++)
@@ -242,20 +247,48 @@ void	player_init(t_game *game)
 
 	i = 0;
 	j = 0;
-	while (i < ROWS)
+	while (i < game->row)
 	{
 		j = 0;
-		while (j < COLS)
+		while (j < game->col)
 		{
-			if (game->map[i][j] == 'N')
+			if (game->map[i][j] == 'N' || game->map[i][j] == 'S'
+				|| game->map[i][j] == 'E' || game->map[i][j] == 'W')
 			{
-                game->map[i][j] = 0;
 				game->player.x = j;
 				game->player.y = i;
-				game->player.dir_x = -1;
-				game->player.dir_y = 0;
-				game->player.plane_x = 0;
-				game->player.plane_y = 0.66;
+				if (game->map[i][j] == 'N')
+				{
+					game->player.dir_x = -1;
+					game->player.dir_y = 0;
+					game->player.plane_x = 0;
+					game->player.plane_y = 0.66;
+					game->map[i][j] = 0;
+				}
+				else if (game->map[i][j] == 'S')
+				{
+					game->player.dir_x = 1;
+					game->player.dir_y = 0;
+					game->player.plane_x = 0;
+					game->player.plane_y = -0.66;
+					game->map[i][j] = 0;
+				}
+				else if (game->map[i][j] == 'E')
+				{
+					game->player.dir_x = 0;
+					game->player.dir_y = 1;
+					game->player.plane_x = 0.66;
+					game->player.plane_y = 0;
+					game->map[i][j] = 0;
+				}
+				else if (game->map[i][j] == 'W')
+				{
+					game->player.dir_x = 0;
+					game->player.dir_y = -1;
+					game->player.plane_x = -0.66;
+					game->player.plane_y = 0;
+					game->map[i][j] = 0;
+				}
 				return ;
 			}
 			j++;
@@ -284,7 +317,7 @@ void	load_texture(t_game *game, int tex_index, char *path, void *mlx)
 	tex->height = height;
 }
 
-// TODO remove hardcoded values once transitioned to reading cub file
+// TODO: remove hardcoded values once transitioned to reading cub file
 void	game_init(t_game *game)
 {
 	int map[ROWS][COLS] = {
@@ -300,8 +333,24 @@ void	game_init(t_game *game)
 	{1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 	{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
 	};
-
-	ft_memcpy(game->map, map, sizeof(int) * ROWS * COLS);
+    game->map = malloc(ROWS * sizeof(int*));
+    if (game->map == NULL)
+        ft_close(game, EXIT_FAILURE);
+    for (int i = 0; i < ROWS; ++i)
+	{
+        game->map[i] = malloc(COLS * sizeof(int));
+        if (game->map[i] == NULL)
+		{
+            for (int j = 0; j < i; ++j)
+                free(game->map[j]);
+            free(game->map);
+            ft_close(game, EXIT_FAILURE);
+        }
+    }
+	for (int i = 0; i < ROWS; ++i)
+		ft_memcpy(game->map[i], map[i], COLS * sizeof(int));
+	game->row = ROWS;
+	game->col = COLS;
 	player_init(game);
 	load_texture(game, 0, "./img/so.xpm", game->mlx); //north
 	load_texture(game, 1, "./img/so.xpm", game->mlx); //south
@@ -324,9 +373,9 @@ void	img_init(t_game *game)
 
 int	main_loop(t_game *game)
 {
-    raycasting(game);
-    mlx_put_image_to_window(game->mlx, game->win, game->img.img, 0, 0);
-    return (0);
+	raycasting(game);
+	mlx_put_image_to_window(game->mlx, game->win, game->img.img, 0, 0);
+	return (0);
 }
 
 void	check_arguments(int argc, char **argv, t_game *game)
@@ -405,16 +454,16 @@ int	*parse_color(t_game *game, char *str)
 
 void	parse_cub_file(t_game *game)
 {
-	char	temp_map[ROWS][COLS];
+	char	temp_map[1000][1000];
 	char	*line;
 	char	**split_line;
-	int		row;
 	int		i;
 	int		j;
 	int		mapcheck;
 	t_map	*current;
 
-	row = 0;
+	game->row = 0;
+	game->col = 0;
 	mapcheck = 0;
 	current = game->read_map;
 	ft_memset(temp_map, 0, sizeof(temp_map));
@@ -426,13 +475,22 @@ void	parse_cub_file(t_game *game)
 		{
 			if (ft_strlen(line) == 0)
 			{
-				ft_putstr_fd("Error: Invalid line in .cub file\n", 2);
-                ft_putstr_fd(line, 2);
-                ft_putstr_fd("\n", 2);
-                ft_close(game, EXIT_FAILURE);
+				ft_putstr_fd("Error: Empty line in .cub map file\n", 2);
+				ft_close(game, EXIT_FAILURE);
 			}
-			ft_memcpy(temp_map[row], line, COLS);
-			row++;
+			ft_strcpy(temp_map[game->row], line);
+			if ((int)ft_strlen(line) > game->col)
+				game->col = ft_strlen(line);
+			game->row++;
+		}
+		else if ((ft_strncmp(line, " ", 1) == 0
+			|| ft_strncmp(line, "1", 1) == 0
+			|| ft_strncmp(line, "1", 1) == 0) && mapcheck == 0)
+		{
+			ft_strcpy(temp_map[game->row], line);
+			game->col = ft_strlen(line);
+			game->row++;
+			mapcheck = 1;
 		}
 		else if (split_line[0] != NULL && split_line[1] != NULL && mapcheck == 0)
 		{
@@ -450,18 +508,11 @@ void	parse_cub_file(t_game *game)
 				game->ceiling_color = parse_color(game, split_line[1]);
 			else
 			{
-				ft_putstr_fd("Error: Invalid line in .cub file\n", 2);
+				ft_putstr_fd("Error: Invalid param line in .cub file\n", 2);
 				ft_putstr_fd(line, 2);
 				ft_putstr_fd("\n", 2);
 				ft_close(game, EXIT_FAILURE);
 			}
-		}
-		else if ((ft_strncmp(line, " ", 1) == 0 || ft_strncmp(line, "1", 1) == 0
-			|| ft_strncmp(line, "1", 1) == 0) && mapcheck == 0)
-		{
-            ft_memcpy(temp_map[row], line, COLS);
-            row++;
-			mapcheck = 1;
 		}
 		else if (ft_strlen(line) > 0 && mapcheck == 0)
 		{
@@ -473,11 +524,28 @@ void	parse_cub_file(t_game *game)
 		ft_freesplit(split_line);
 		current = current->next;
 	}
+    game->map = malloc(game->row * sizeof(int *));
+	if (game->map == NULL)
+	{
+		ft_putstr_fd("Error: Memory allocation failed\n", 2);
+		ft_close(game, EXIT_FAILURE);
+	}
 	i = 0;
-	while (i < ROWS)
+	while (i < game->col)
+	{
+		game->map[i] = malloc(game->col * sizeof(int));
+		if (game->map[i] == NULL)
+		{
+			ft_putstr_fd("Error: Memory allocation failed\n", 2);
+			ft_close(game, EXIT_FAILURE);
+		}
+		i++;
+    }
+	i = 0;
+	while (i < game->row)
 	{
 		j = 0;
-		while (j < COLS)
+		while (j < game->col)
 		{
 			if (temp_map[i][j] == '0')
 				game->map[i][j] = 0;
@@ -491,12 +559,15 @@ void	parse_cub_file(t_game *game)
 				game->map[i][j] = 'E';
 			else if (temp_map[i][j] == 'W')
 				game->map[i][j] = 'W';
-			else if (temp_map[i][j] == ' ' || (ft_strlen(temp_map[i]) < COLS
+			else if (temp_map[i][j] == ' '
+				|| ((int)ft_strlen(temp_map[i]) < game->col
 				&& j >= (int)ft_strlen(temp_map[i])))
 				game->map[i][j] = ' ';
 			else
 			{
-				printf("Error: Invalid character in map\n");
+				ft_putstr_fd("Error: Invalid character in map\n", 2);
+				ft_putstr_fd(temp_map[i], 2);
+				ft_putstr_fd("\n", 2);
 				ft_close(game, EXIT_FAILURE);
 			}
 			j++;
@@ -505,7 +576,7 @@ void	parse_cub_file(t_game *game)
 	}
 }
 
-// TODO once parser is done properly, remove if loop for argv
+// TODO: once parser is done properly, remove if loop for argv
 void	init_game(t_game **game, char **argv)
 {
 	int		i;
@@ -525,7 +596,6 @@ void	init_game(t_game **game, char **argv)
 	(*game)->img.size_l = 0;
 	(*game)->img.bpp = 0;
 	(*game)->img.endian = 0;
-	ft_memset((*game)->map, 0, sizeof(int) * ROWS * COLS);
 	(*game)->player.x = 0.0;
 	(*game)->player.y = 0.0;
 	(*game)->player.dir_x = 1.0;
@@ -555,10 +625,10 @@ void	init_game(t_game **game, char **argv)
 		close(fd);
 		parse_cub_file(*game);
 		player_init(*game);
-		load_texture(*game, 0, (*game)->textures[0].path, (*game)->mlx); //north
-		load_texture(*game, 1, (*game)->textures[1].path, (*game)->mlx); //south
-		load_texture(*game, 2, (*game)->textures[2].path, (*game)->mlx); //east
-		load_texture(*game, 3, (*game)->textures[3].path, (*game)->mlx); //west
+		load_texture(*game, 0, (*game)->textures[0].path, (*game)->mlx);
+		load_texture(*game, 1, (*game)->textures[1].path, (*game)->mlx);
+		load_texture(*game, 2, (*game)->textures[2].path, (*game)->mlx);
+		load_texture(*game, 3, (*game)->textures[3].path, (*game)->mlx);
 	}
 	else
 		game_init(*game);
@@ -573,7 +643,7 @@ int	main(int argc, char **argv)
 	check_arguments(argc, argv, game);
 	init_game(&game, argv);
 	mlx_hook(game->win, X_EVENT_KEY_PRESS, 1L << 0, &deal_key, game);
-	mlx_hook(game->win, X_EVENT_KEY_EXIT, 1L << 2, &ft_close, game);
+	mlx_hook(game->win, X_EVENT_KEY_EXIT, 1L << 2, &ft_close_game, game);
 	mlx_loop_hook(game->mlx, &main_loop, game);
 	mlx_loop(game->mlx);
 }
