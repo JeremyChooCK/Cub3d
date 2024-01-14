@@ -211,10 +211,19 @@ void	raycasting(t_game *game)
         int drawEnd = lineHeight / 2 + HEIGHT / 2;
 		if (drawEnd >= HEIGHT)
 			drawEnd = HEIGHT - 1;
-        // Choose wall texture
-        int texNum = game->map[mapX][mapY] - 1; // assuming 0 is an empty space and textures are 1, 2, 3, 4...
-		if (texNum > 3)
-			texNum = 1; // Prevents segfaults (for now...), temporary solution
+		// choose texture based on direction
+		int texNum;
+		if (side == 0) {
+			if (rayDirX > 0)
+				texNum = 3; //west
+			else
+				texNum = 2; //east
+		} else {
+			if (rayDirY > 0)
+				texNum = 0;//north
+			else
+				texNum = 1; //south
+		}
         // Calculate texture coordinates
         double wallX;
 		if (side == 0)
@@ -238,9 +247,7 @@ void	raycasting(t_game *game)
             // Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
             int texY = (int)texPos & (texHeight - 1);
             texPos += step;
-			// (void)texY;
-            int color = game->textures[1].data[texHeight * texY + texX];
-			// int color = game->textures[0].data[0];
+            int color = game->textures[texNum].data[texHeight * texY + texX];
             // make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
 			if (side == 1)
 				color = (color >> 1) & 8355711;
@@ -322,7 +329,6 @@ void	load_texture(t_game *game, int tex_index, char *path, void *mlx)
 	tex = &game->textures[tex_index];
 	img = mlx_xpm_file_to_image(mlx, path, &width, &height);
 	game->textures[tex_index].data = (int*)mlx_get_data_addr(img, &bpp, &size_l, &endian);
-	printf("%i\n", tex->data[0]);
 	if (!tex->data)
 	{
 		ft_putstr_fd("Error loading texture\n", 2);
@@ -370,7 +376,7 @@ void	game_init(t_game *game)
 	load_texture(game, 0, "./img/so.xpm", game->mlx); //north
 	load_texture(game, 1, "./img/we.xpm", game->mlx); //south
 	load_texture(game, 2, "./img/bluestone.xpm", game->mlx); //east
-	load_texture(game, 3, "./img/bluestone.xpm", game->mlx); //west
+	load_texture(game, 3, "./img/purplestone.xpm", game->mlx); //west
 }
 
 void	window_init(t_game *game)
