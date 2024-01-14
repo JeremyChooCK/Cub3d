@@ -202,7 +202,7 @@ void	raycasting(t_game *game)
         // Choose wall texture
         int texNum = game->map[mapX][mapY] - 1; // assuming 0 is an empty space and textures are 1, 2, 3, 4...
 		if (texNum > 3)
-			texNum = 0; // Prevents segfaults (for now...), temporary solution
+			texNum = 1; // Prevents segfaults (for now...), temporary solution
         // Calculate texture coordinates
         double wallX;
 		if (side == 0)
@@ -226,7 +226,9 @@ void	raycasting(t_game *game)
             // Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
             int texY = (int)texPos & (texHeight - 1);
             texPos += step;
-            int color = game->textures[texNum].data[texHeight * texY + texX];
+			// (void)texY;
+            int color = game->textures[1].data[texHeight * texY + texX];
+			// int color = game->textures[0].data[0];
             // make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
 			if (side == 1)
 				color = (color >> 1) & 8355711;
@@ -271,10 +273,16 @@ void	load_texture(t_game *game, int tex_index, char *path, void *mlx)
 	t_texture	*tex;
 	int			width;
 	int			height;
+	void	*img;
+	// int		*data;
+	int		size_l;
+	int		bpp;
+	int		endian;
 
 	tex = &game->textures[tex_index];
-	tex->data = (int *)mlx_xpm_file_to_image(mlx, path, &width, &height);
-	printf("%i\n", *(tex->data));
+	img = mlx_xpm_file_to_image(mlx, path, &width, &height);
+	game->textures[tex_index].data = (int*)mlx_get_data_addr(img, &bpp, &size_l, &endian);
+	printf("%i\n", tex->data[0]);
 	if (!tex->data)
 	{
 		ft_putstr_fd("Error loading texture\n", 2);
@@ -304,7 +312,7 @@ void	game_init(t_game *game)
 	ft_memcpy(game->map, map, sizeof(int) * ROWS * COLS);
 	player_init(game);
 	load_texture(game, 0, "./img/so.xpm", game->mlx); //north
-	load_texture(game, 1, "./img/so.xpm", game->mlx); //south
+	load_texture(game, 1, "./img/we.xpm", game->mlx); //south
 	load_texture(game, 2, "./img/bluestone.xpm", game->mlx); //east
 	load_texture(game, 3, "./img/bluestone.xpm", game->mlx); //west
 }
@@ -577,3 +585,22 @@ int	main(int argc, char **argv)
 	mlx_loop_hook(game->mlx, &main_loop, game);
 	mlx_loop(game->mlx);
 }
+
+// int main(void)
+// {
+//     void *mlx_ptr;
+//     void *win_ptr;
+//     t_texture *img_ptr;
+// 	int width;
+// 	int height;
+
+//     mlx_ptr = mlx_init();
+//     win_ptr = mlx_new_window(mlx_ptr, 800, 600, "My Window");
+//     img_ptr = mlx_xpm_file_to_image(mlx_ptr, "./img/we.xpm", &width, &height);
+
+//     mlx_put_image_to_window(mlx_ptr, win_ptr, img_ptr, 100, 100);
+
+//     mlx_loop(mlx_ptr);
+
+//     return (0);
+// }
