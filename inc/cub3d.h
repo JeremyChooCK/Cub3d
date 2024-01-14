@@ -6,7 +6,7 @@
 /*   By: jegoh <jegoh@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 21:34:32 by jegoh             #+#    #+#             */
-/*   Updated: 2024/01/13 14:23:07 by jegoh            ###   ########.fr       */
+/*   Updated: 2024/01/14 12:07:15 by jegoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #ifndef CUB3D_H
@@ -38,15 +38,15 @@
 # define MOVE_SPEED 0.1
 # define ROT_SPEED 0.05
 
-# define WIN_WIDTH 800
-# define WIN_HEIGHT 600
 # define IMG_WIDTH 400
 # define IMG_HEIGHT 300
 # define TILE_SIZE 32
 # define ROWS 11
 # define COLS 15
-# define WIDTH 480
-# define HEIGHT 352
+//# define WIDTH 480
+# define WIDTH 1280
+//# define HEIGHT 352
+# define HEIGHT 720
 
 // Red:   Alpha 00, Red FF, Green 00, Blue 00
 # define RED 0x00FF0000
@@ -89,6 +89,11 @@ typedef struct s_texture
 	char	*path;
 }	t_texture;
 
+// textures[0] north
+// textures[1] south
+// textures[2] east
+// textures[3] west
+// TODO change map[ROWS][COLS] to **map
 typedef struct s_game
 {
 	void		*mlx;
@@ -108,7 +113,7 @@ typedef struct s_point
 	double	y;
 }	t_point;
 
-int		ft_close(t_game *game);
+int		ft_close(t_game *game, int exit_code);
 int		deal_key(int key_code, t_game *game);
 void	clear_image(t_game *game);
 void	raycasting(t_game *game);
@@ -118,6 +123,6 @@ void	game_init(t_game *game);
 void	window_init(t_game *game);
 void	img_init(t_game *game);
 int		main_loop(t_game *game);
-void	check_arguments(int argc, char **argv);
+void	check_arguments(int argc, char **argv, t_game *game);
 
 #endif
