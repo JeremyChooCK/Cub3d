@@ -91,7 +91,6 @@ typedef struct s_texture
 // textures[1] south
 // textures[2] east
 // textures[3] west
-// TODO: change map[ROWS][COLS] to **map
 typedef struct s_game
 {
 	void		*mlx;
@@ -100,7 +99,6 @@ typedef struct s_game
 	t_map		*read_map;
 	int			row;
 	int			col;
-	//int			map[ROWS][COLS];
 	int			**map;
 	int			*floor_color;
 	int			*ceiling_color;

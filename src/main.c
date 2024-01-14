@@ -11,21 +11,28 @@
 /* ************************************************************************** */
 #include "cub3d.h"
 
+// TODO: update this function to fix memory leaks, need to free texture and map
 void	free_game(t_game *game)
 {
-	int	i;
-
 	if (game == NULL)
 		return ;
 	if (game->mlx)
 		free(game->mlx);
-	i = 0;
-	while (i < 4)
-	{
-		if (game->textures[i].data != NULL)
-			free(game->textures[i].data);
-		i++;
+    if (game->read_map)
+        free(game->read_map);
+    if (game->map)
+    {
+		for (int i = 0; i < game->row; i++)
+		{
+			if (game->map[i])
+				free(game->map[i]);
+		}
+		free(game->map);
 	}
+	if (game->floor_color)
+		free(game->floor_color);
+	if (game->ceiling_color)
+		free(game->ceiling_color);
 	free(game);
 }
 
@@ -656,6 +663,7 @@ int	main(int argc, char **argv)
 	mlx_loop(game->mlx);
 }
 
+// TODO: remove this once testing is done
 // int main(void)
 // {
 //     void *mlx_ptr;
