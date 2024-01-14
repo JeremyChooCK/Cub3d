@@ -38,9 +38,7 @@
 # define MOVE_SPEED 0.1
 # define ROT_SPEED 0.05
 
-# define IMG_WIDTH 400
-# define IMG_HEIGHT 300
-# define TILE_SIZE 32
+// TODO: change ROWS and COLS to be dynamic
 # define ROWS 11
 # define COLS 15
 //# define WIDTH 480
@@ -93,14 +91,15 @@ typedef struct s_texture
 // textures[1] south
 // textures[2] east
 // textures[3] west
-// TODO change map[ROWS][COLS] to **map
 typedef struct s_game
 {
 	void		*mlx;
 	void		*win;
 	t_img		img;
 	t_map		*read_map;
-	int			map[ROWS][COLS];
+	int			row;
+	int			col;
+	int			**map;
 	int			*floor_color;
 	int			*ceiling_color;
 	t_player	player;
@@ -113,7 +112,7 @@ typedef struct s_point
 	double	y;
 }	t_point;
 
-int		ft_close(t_game *game, int exit_code);
+void	ft_close(t_game *game, int exit_code);
 int		deal_key(int key_code, t_game *game);
 void	clear_image(t_game *game);
 void	raycasting(t_game *game);
