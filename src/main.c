@@ -6,7 +6,7 @@
 /*   By: jegoh <jegoh@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 21:45:15 by jegoh             #+#    #+#             */
-/*   Updated: 2024/01/14 12:31:48 by jegoh            ###   ########.fr       */
+/*   Updated: 2024/01/15 13:34:51 by jegoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include "cub3d.h"
@@ -142,118 +142,148 @@ void	clear_image(t_game *game)
 
 void	raycasting(t_game *game)
 {
+	int		x;
+	int		y;
+	int		hit; // Was there a wall hit?
+	int		side; // Was a NS or a EW wall hit?
+	int		mapx;
+	int		mapy;
+	int		stepx;
+	int		stepy;
+	int		lineheight;
+	int		drawstart;
+	int		drawend;
+	int		texnum;
+	int		texwidth;
+	int		texheight;
+	int		texx;
+	int		texy;
+	int		color;
+	double	camerax;
+	double	raydirx;
+	double	raydiry;
+	double	sidedistx;
+	double	sidedisty;
+	double	deltadistx;
+	double	deltadisty;
+	double	perpwalldist;
+	double	wallx;
+	double	step;
+	double	texpos;
+
 	clear_image(game);
-	for (int x = 0; x < WIDTH; x++)
+	x = 0;
+	while (x < WIDTH)
 	{
-		double cameraX = 2 * x / (double)WIDTH - 1;
-		double rayDirX = game->player.dir_x + game->player.plane_x * cameraX;
-		double rayDirY = game->player.dir_y + game->player.plane_y * cameraX;
-		int mapX = (int)game->player.x;
-		int mapY = (int)game->player.y;
-		double sideDistX, sideDistY;
-		double deltaDistX = fabs(1 / rayDirX);
-		double deltaDistY = fabs(1 / rayDirY);
-		double perpWallDist;
-		int stepX, stepY;
-		int hit = 0; // Was there a wall hit?
-		int side; // Was a NS or a EW wall hit?
+		camerax = 2 * x / (double)WIDTH - 1;
+		raydirx = game->player.dir_x + game->player.plane_x * camerax;
+		raydiry = game->player.dir_y + game->player.plane_y * camerax;
+		mapx = (int)game->player.x;
+		mapy = (int)game->player.y;
+		deltadistx = fabs(1 / raydirx);
+		deltadisty = fabs(1 / raydiry);
+		hit = 0;
 		// Step direction and initial sideDist calculation
-		if (rayDirX < 0)
+		if (raydirx < 0)
 		{
-			stepX = -1;
-			sideDistX = (game->player.x - mapX) * deltaDistX;
+			stepx = -1;
+			sidedistx = (game->player.x - mapx) * deltadistx;
 		}
 		else
 		{
-			stepX = 1;
-			sideDistX = (mapX + 1.0 - game->player.x) * deltaDistX;
+			stepx = 1;
+			sidedistx = (mapx + 1.0 - game->player.x) * deltadistx;
 		}
-		if (rayDirY < 0)
+		if (raydiry < 0)
 		{
-			stepY = -1;
-			sideDistY = (game->player.y - mapY) * deltaDistY;
+			stepy = -1;
+			sidedisty = (game->player.y - mapy) * deltadisty;
 		}
 		else
 		{
-            stepY = 1;
-            sideDistY = (mapY + 1.0 - game->player.y) * deltaDistY;
-        }
-        // DDA Algorithm
-        while (hit == 0)
+			stepy = 1;
+			sidedisty = (mapy + 1.0 - game->player.y) * deltadisty;
+		}
+		// DDA Algorithm
+		while (hit == 0)
 		{
-            if (sideDistX < sideDistY)
+			if (sidedistx < sidedisty)
 			{
-                sideDistX += deltaDistX;
-                mapX += stepX;
-                side = 0;
-            }
+				sidedistx += deltadistx;
+				mapx += stepx;
+				side = 0;
+			}
 			else
 			{
-                sideDistY += deltaDistY;
-                mapY += stepY;
-                side = 1;
-            }
-            // Check if ray has hit a wall
-			if (game->map[mapX][mapY] > 0)
+				sidedisty += deltadisty;
+				mapy += stepy;
+				side = 1;
+			}
+			// Check if ray has hit a wall
+			if (game->map[mapx][mapy] > 0)
 				hit = 1;
-        }
-        // Calculate distance to the wall
-		if (side == 0)
-			perpWallDist = (mapX - game->player.x + (1 - stepX) / 2) / rayDirX;
-		else
-			perpWallDist = (mapY - game->player.y + (1 - stepY) / 2) / rayDirY;
-        // Calculate height of line to draw on screen
-        int lineHeight = (int)(HEIGHT / perpWallDist);
-        // Calculate lowest and highest pixel to fill in current stripe
-        int drawStart = -lineHeight / 2 + HEIGHT / 2;
-		if (drawStart < 0)
-			drawStart = 0;
-        int drawEnd = lineHeight / 2 + HEIGHT / 2;
-		if (drawEnd >= HEIGHT)
-			drawEnd = HEIGHT - 1;
-		// choose texture based on direction
-		int texNum;
-		if (side == 0) {
-			if (rayDirX > 0)
-				texNum = 3; //west
-			else
-				texNum = 2; //east
-		} else {
-			if (rayDirY > 0)
-				texNum = 0;//north
-			else
-				texNum = 1; //south
 		}
-        // Calculate texture coordinates
-        double wallX;
+		// Calculate distance to the wall
 		if (side == 0)
-			wallX = game->player.y + perpWallDist * rayDirY;
+			perpwalldist = (mapx - game->player.x + (1 - stepx) / 2) / raydirx;
 		else
-			wallX = game->player.x + perpWallDist * rayDirX;
-        wallX -= floor(wallX);
-		int texWidth = game->textures[texNum].width;
-		int texHeight = game->textures[texNum].height;
-        int texX = (int)(wallX * (double)(texWidth));
-		if (side == 0 && rayDirX > 0)
-			texX = texWidth - texX - 1;
-		if (side == 1 && rayDirY < 0)
-			texX = texWidth - texX - 1;
+			perpwalldist = (mapy - game->player.y + (1 - stepy) / 2) / raydiry;
+		// Calculate height of line to draw on screen
+		lineheight = (int)(HEIGHT / perpwalldist);
+		// Calculate lowest and highest pixel to fill in current stripe
+		drawstart = -lineheight / 2 + HEIGHT / 2;
+		if (drawstart < 0)
+			drawstart = 0;
+		drawend = lineheight / 2 + HEIGHT / 2;
+		if (drawend >= HEIGHT)
+			drawend = HEIGHT - 1;
+		// choose texture based on direction
+		if (side == 0)
+		{
+			if (raydirx > 0)
+				texnum = 3; //west
+			else
+				texnum = 2; //east
+		}
+		else
+		{
+			if (raydiry > 0)
+				texnum = 0;//north
+			else
+				texnum = 1; //south
+		}
+		// Calculate texture coordinates
+		if (side == 0)
+			wallx = game->player.y + perpwalldist * raydiry;
+		else
+			wallx = game->player.x + perpwalldist * raydirx;
+		wallx -= floor(wallx);
+		texwidth = game->textures[texnum].width;
+		texheight = game->textures[texnum].height;
+        texx = (int)(wallx * (double)(texwidth));
+		if (side == 0 && raydirx > 0)
+			texx = texwidth - texx - 1;
+		if (side == 1 && raydiry < 0)
+			texx = texwidth - texx - 1;
 		// How much to increase the texture coordinate per screen pixel
-		double step = 1.0 * texHeight / lineHeight;
-        // Starting texture coordinate
-        double texPos = (drawStart - HEIGHT / 2 + lineHeight / 2) * step;
-        for (int y = drawStart; y < drawEnd; y++)
-        {
-            // Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
-            int texY = (int)texPos & (texHeight - 1);
-            texPos += step;
-            int color = game->textures[texNum].data[texHeight * texY + texX];
+		step = 1.0 * texheight / lineheight;
+		// Starting texture coordinate
+		texpos = (drawstart - HEIGHT / 2 + lineheight / 2) * step;
+		y = drawstart;
+		while (y < drawend)
+		{
+			// Cast the texture coordinate to integer, and mask with (texheight - 1) in case of overflow
+			texy = (int)texpos & (texheight - 1);
+			texpos += step;
+			color = game->textures[texnum].data[texheight * texy + texx];
             // make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
 			if (side == 1)
 				color = (color >> 1) & 8355711;
             game->img.data[y * WIDTH + x] = color;
-        }
-    }
+			y++;
+		}
+		x++;
+	}
 }
 
 void	player_init(t_game *game)
@@ -314,14 +344,12 @@ void	player_init(t_game *game)
 }
 
 // Function to load a texture from an XPM file
-// TODO remove printf statement once debug finished
 void	load_texture(t_game *game, int tex_index, char *path, void *mlx)
 {
 	t_texture	*tex;
 	int			width;
 	int			height;
 	void	*img;
-	// int		*data;
 	int		size_l;
 	int		bpp;
 	int		endian;
@@ -331,7 +359,7 @@ void	load_texture(t_game *game, int tex_index, char *path, void *mlx)
 	game->textures[tex_index].data = (int*)mlx_get_data_addr(img, &bpp, &size_l, &endian);
 	if (!tex->data)
 	{
-		ft_putstr_fd("Error loading texture\n", 2);
+		perror("Error\nUnable to load texture\n");
 		ft_close(game, EXIT_FAILURE);
 	}
 	tex->width = width;
@@ -373,10 +401,10 @@ void	game_init(t_game *game)
 	game->row = ROWS;
 	game->col = COLS;
 	player_init(game);
-	load_texture(game, 0, "./img/so.xpm", game->mlx); //north
-	load_texture(game, 1, "./img/we.xpm", game->mlx); //south
-	load_texture(game, 2, "./img/bluestone.xpm", game->mlx); //east
-	load_texture(game, 3, "./img/purplestone.xpm", game->mlx); //west
+	load_texture(game, 0, "./img/so.xpm", game->mlx);
+	load_texture(game, 1, "./img/we.xpm", game->mlx);
+	load_texture(game, 2, "./img/bluestone.xpm", game->mlx);
+	load_texture(game, 3, "./img/purplestone.xpm", game->mlx);
 }
 
 void	window_init(t_game *game)
@@ -405,12 +433,12 @@ void	check_arguments(int argc, char **argv, t_game *game)
 
 	if (argc == 1)
 	{
-		printf("Argument check temporary disabled.\n");
+		printf("WARNING, TRANSITION TO .cub FILE ONCE TESTING IS DONE\n");
 		return ;
 	}
 	if (argc != 2)
 	{
-		ft_putstr_fd("Usage: ", 2);
+		ft_putstr_fd("Error\nUsage: ", 2);
 		ft_putstr_fd(argv[0], 2);
 		ft_putstr_fd(" <map_file.cub>\n", 2);
 		ft_close(game, EXIT_FAILURE);
@@ -418,7 +446,9 @@ void	check_arguments(int argc, char **argv, t_game *game)
 	extension = ft_strrchr(argv[1], '.');
 	if (extension == NULL || ft_strcmp(extension, ".cub") != 0)
 	{
-		ft_putstr_fd("Error: Map file must have a .cub extension\n", 2);
+		ft_putstr_fd("Error\nMap file must have a .cub extension\n", 2);
+		ft_putstr_fd(extension, 2);
+		ft_putstr_fd("\n", 2);
 		ft_close(game, EXIT_FAILURE);
 	}
 }
@@ -431,13 +461,13 @@ int	*parse_color(t_game *game, char *str)
 
 	if (str == NULL)
 	{
-		ft_putstr_fd("Error: Input rgb string is NULL\n", 2);
+		perror("Error\nInput rgb string is NULL\n");
 		ft_close(game, EXIT_FAILURE);
 	}
 	colors = ft_split(str, ',');
 	if (colors == NULL)
 	{
-		ft_putstr_fd("Error: Memory allocation failed\n", 2);
+		perror("Error\nMemory allocation failed\n");
 		ft_close(game, EXIT_FAILURE);
 	}
 	i = 0;
@@ -445,14 +475,14 @@ int	*parse_color(t_game *game, char *str)
 		i++;
 	if (i != 3)
 	{
-		ft_putstr_fd("Error: Incorrect number of color values\n", 2);
+		perror("Error\nIncorrect number of color values\n");
 		ft_freesplit(colors);
 		ft_close(game, EXIT_FAILURE);
 	}
 	rgb = malloc(3 * sizeof(int));
 	if (rgb == NULL)
 	{
-		ft_putstr_fd("Error: Memory allocation failed\n", 2);
+		perror("Error\nMemory allocation failed\n");
 		ft_freesplit(colors);
 		ft_close(game, EXIT_FAILURE);
 	}
@@ -463,7 +493,7 @@ int	*parse_color(t_game *game, char *str)
 		i++;
 		if (rgb[i] < 0 || rgb[i] > 255)
 		{
-			ft_putstr_fd("Error: Color values must be between 0 and 255\n", 2);
+			perror("Error\nColor values must be between 0 and 255\n");
 			free(rgb);
 			ft_freesplit(colors);
 			ft_close(game, EXIT_FAILURE);
@@ -473,6 +503,133 @@ int	*parse_color(t_game *game, char *str)
 	return (rgb);
 }
 
+// TODO remove this function once testing is done
+void	print_game_map(t_game *game)
+{
+	int	i;
+	int	j;
+
+	i = 0;
+	while (i < game->row)
+	{
+		j = 0;
+		while (j < game->col)
+		{
+			if (game->map[i][j] == 1 || game->map[i][j] == 0)
+				printf("%d", game->map[i][j]);
+			else
+				printf("%c", game->map[i][j]);
+			j++;
+		}
+		printf("\n");
+		i++;
+	}
+}
+
+void	find_player_position(t_game *game, int *playerx, int *playery)
+{
+	int	i;
+	int	j;
+
+	i = 0;
+	while (i < game->row)
+	{
+		j = 0;
+		while (j < game->col)
+		{
+			if (game->map[i][j] == 'N' || game->map[i][j] == 'S'
+				|| game->map[i][j] == 'E' || game->map[i][j] == 'W')
+			{
+				if (i == 0 || i == game->row - 1
+					|| j == 0 || j == game->col - 1)
+				{
+					perror("Error\nPlayer location is OOB\n");
+                	ft_close(game, EXIT_FAILURE);
+				}
+				*playerx = i;
+				*playery = j;
+				return ;
+			}
+			j++;
+		}
+		i++;
+	}
+}
+
+void	flood_fill(t_game *game, int x, int y, int **visited)
+{
+	if (game->map[x][y] == 1 || visited[x][y])
+		return ;
+	if (x <= 0 || x >= game->row - 1 || y <= 0 || y >= game->col - 1
+		|| game->map[x][y] == ' ')
+	{
+		ft_putstr_fd("Error\nMap is not enclosed\n", 2);
+		ft_close(game, EXIT_FAILURE);
+	}
+	visited[x][y] = 1;
+	flood_fill(game, x + 1, y, visited);
+	flood_fill(game, x - 1, y, visited);
+	flood_fill(game, x, y + 1, visited);
+	flood_fill(game, x, y - 1, visited);
+}
+
+int	**create_visited_array(t_game *game)
+{
+	int	i;
+	int	j;
+	int	**visited;
+
+	visited = malloc(game->row * sizeof(int *));
+	if (!visited)
+	{
+		perror("Error\nMemory allocation failed for visited array\n");
+		ft_close(game, EXIT_FAILURE);
+	}
+	i = 0;
+	while (i < game->row)
+	{
+		visited[i] = malloc(game->col * sizeof(int));
+		if (!visited[i])
+		{
+			perror("Error\nMemory allocation failed for visited row\n");
+			j = 0;
+			while (j < i)
+				free(visited[j++]);
+			free(visited);
+			ft_close(game, EXIT_FAILURE);
+		}
+		j = 0;
+		while (j < game->col)
+			visited[i][j++] = 0;
+		i++;
+	}
+	return (visited);
+}
+
+void	free_visited_array(t_game *game, int **visited)
+{
+	int	i;
+
+	i = 0;
+	while (i < game->row)
+		free(visited[i++]);
+	free(visited);
+}
+
+void	is_map_fully_enclosed(t_game *game)
+{
+	int	**visited;
+	int playerx;
+	int	playery;
+
+	visited = create_visited_array(game);
+	playerx = 1;
+	playery = 1;
+	find_player_position(game, &playerx, &playery);
+	flood_fill(game, playerx, playery, visited);
+	free_visited_array(game, visited);
+}
+
 void	parse_cub_file(t_game *game)
 {
 	char	temp_map[1000][1000];
@@ -480,12 +637,14 @@ void	parse_cub_file(t_game *game)
 	char	**split_line;
 	int		i;
 	int		j;
+	int		player_count;
 	int		mapcheck;
 	t_map	*current;
 
 	game->row = 0;
 	game->col = 0;
 	mapcheck = 0;
+	player_count = 0;
 	current = game->read_map;
 	ft_memset(temp_map, 0, sizeof(temp_map));
 	while (current != NULL)
@@ -496,7 +655,7 @@ void	parse_cub_file(t_game *game)
 		{
 			if (ft_strlen(line) == 0)
 			{
-				ft_putstr_fd("Error: Empty line in .cub map file\n", 2);
+				perror("Error\nEmpty line in .cub map file\n");
 				ft_close(game, EXIT_FAILURE);
 			}
 			ft_strcpy(temp_map[game->row], line);
@@ -529,7 +688,7 @@ void	parse_cub_file(t_game *game)
 				game->ceiling_color = parse_color(game, split_line[1]);
 			else
 			{
-				ft_putstr_fd("Error: Invalid param line in .cub file\n", 2);
+				ft_putstr_fd("Error\nInvalid param line in .cub file\n", 2);
 				ft_putstr_fd(line, 2);
 				ft_putstr_fd("\n", 2);
 				ft_close(game, EXIT_FAILURE);
@@ -537,7 +696,7 @@ void	parse_cub_file(t_game *game)
 		}
 		else if (ft_strlen(line) > 0 && mapcheck == 0)
 		{
-			ft_putstr_fd("Error: Invalid line? in .cub file\n", 2);
+			ft_putstr_fd("Error\nInvalid line in .cub file\n", 2);
 			ft_putstr_fd(line, 2);
 			ft_putstr_fd("\n", 2);
 			ft_close(game, EXIT_FAILURE);
@@ -548,7 +707,7 @@ void	parse_cub_file(t_game *game)
     game->map = malloc(game->row * sizeof(int *));
 	if (game->map == NULL)
 	{
-		ft_putstr_fd("Error: Memory allocation failed\n", 2);
+		perror("Error\nMemory allocation failed\n");
 		ft_close(game, EXIT_FAILURE);
 	}
 	i = 0;
@@ -557,7 +716,7 @@ void	parse_cub_file(t_game *game)
 		game->map[i] = malloc(game->col * sizeof(int));
 		if (game->map[i] == NULL)
 		{
-			ft_putstr_fd("Error: Memory allocation failed\n", 2);
+			perror("Error\nMemory allocation failed\n");
 			ft_close(game, EXIT_FAILURE);
 		}
 		i++;
@@ -568,6 +727,14 @@ void	parse_cub_file(t_game *game)
 		j = 0;
 		while (j < game->col)
 		{
+			if (temp_map[i][j] == 'N' || temp_map[i][j] == 'S'
+				|| temp_map[i][j] == 'E' || temp_map[i][j] == 'W')
+				player_count++;
+			if (player_count > 1)
+			{
+				perror("Error\nMultiple players in map\n");
+				ft_close(game, EXIT_FAILURE);
+			}
 			if (temp_map[i][j] == '0')
 				game->map[i][j] = 0;
 			else if (temp_map[i][j] == '1')
@@ -586,7 +753,7 @@ void	parse_cub_file(t_game *game)
 				game->map[i][j] = ' ';
 			else
 			{
-				ft_putstr_fd("Error: Invalid character in map\n", 2);
+				ft_putstr_fd("Error\nInvalid character in map\n", 2);
 				ft_putstr_fd(temp_map[i], 2);
 				ft_putstr_fd("\n", 2);
 				ft_close(game, EXIT_FAILURE);
@@ -595,6 +762,9 @@ void	parse_cub_file(t_game *game)
 		}
 		i++;
 	}
+	is_map_fully_enclosed(game);
+	// TODO remove this once debugging is over.
+	print_game_map(game);
 }
 
 // TODO: once parser is done properly, remove if loop for argv
@@ -607,7 +777,7 @@ void	init_game(t_game **game, char **argv)
 	*game = (t_game *)malloc(sizeof(t_game));
 	if (*game == NULL)
 	{
-		ft_putstr_fd("Error: Memory allocation failed\n", 2);
+		perror("Error\nMemory allocation failed\n");
 		ft_close(*game, EXIT_FAILURE);
 	}
 	(*game)->mlx = NULL;
@@ -670,21 +840,20 @@ int	main(int argc, char **argv)
 }
 
 // TODO: remove this once testing is done
-// int main(void)
-// {
-//     void *mlx_ptr;
-//     void *win_ptr;
-//     t_texture *img_ptr;
-// 	int width;
-// 	int height;
+/*
+int main(void)
+{
+	void		*mlx_ptr;
+	void		*win_ptr;
+	t_texture	*img_ptr;
+	int			width;
+	int			height;
 
-//     mlx_ptr = mlx_init();
-//     win_ptr = mlx_new_window(mlx_ptr, 800, 600, "My Window");
-//     img_ptr = mlx_xpm_file_to_image(mlx_ptr, "./img/we.xpm", &width, &height);
-
-//     mlx_put_image_to_window(mlx_ptr, win_ptr, img_ptr, 100, 100);
-
-//     mlx_loop(mlx_ptr);
-
-//     return (0);
-// }
+	mlx_ptr = mlx_init();
+	win_ptr = mlx_new_window(mlx_ptr, 800, 600, "My Window");
+	img_ptr = mlx_xpm_file_to_image(mlx_ptr, "./img/we.xpm", &width, &height);
+	mlx_put_image_to_window(mlx_ptr, win_ptr, img_ptr, 100, 100);
+	mlx_loop(mlx_ptr);
+	return (0);
+}
+*/

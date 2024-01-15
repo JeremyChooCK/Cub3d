@@ -1,7 +1,7 @@
-NO ./img/so.xpm
+NO ./img/no.xpm
 SO ./img/so.xpm
-EA ./img/bluestone.xpm
-WE ./img/bluestone.xpm
+WE ./img/we.xpm
+EA ./img/ea.xpm
 F 220,100,0
 C 225,30,0
 
