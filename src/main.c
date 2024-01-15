@@ -6,12 +6,16 @@
 /*   By: jegoh <jegoh@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 21:45:15 by jegoh             #+#    #+#             */
-/*   Updated: 2024/01/15 17:07:23 by jegoh            ###   ########.fr       */
+/*   Updated: 2024/01/15 22:15:11 by jegoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include "cub3d.h"
 
-// TODO: update this function to fix memory leaks, need to free texture and map
+void	del(void *content)
+{
+	free(content);
+}
+
 void	free_game(t_game *game)
 {
 	int	i;
@@ -21,40 +25,42 @@ void	free_game(t_game *game)
 	if (game->mlx)
 		free(game->mlx);
 	if (game->read_map)
-		free(game->read_map);
-	if (game->map)
+		ft_lstclear(&(game->read_map), del);
+	i = 0;
+	while (i < game->row)
 	{
-		i = 0;
-		while (i < game->row)
-		{
-			if (game->map[i])
-				free(game->map[i]);
-			i++;
-		}
-		free(game->map);
+		if (game->map[i])
+			free(game->map[i]);
+		i++;
 	}
-	if (game->floor_color)
-		free(game->floor_color);
-	if (game->ceiling_color)
-		free(game->ceiling_color);
+	if (game->map)
+		free(game->map);
+	i = 0;
+	while (i < 4)
+	{
+		if (game->textures[i].path)
+			free(game->textures[i].path);
+		i++;
+	}
 	free(game);
 }
 
-unsigned int rgbToBitmask(int rgb[3]) {
-    // Ensure each color component is within the range of 0-255
+// Ensure each color component is within the range of 0-255
+unsigned int	rgb_to_bitmask(int rgb[3])
+{
 	int	i;
 
 	i = 0;
 	while (i < 3)
 	{
 		if (rgb[i] < 0 || rgb[i] > 255)
-            return 0;
+			return (0);
 		i++;
 	}
-    // Combine the RGB components into a single integer
-    // Shift red 16 bits left, green 8 bits left, and blue stays as it is
-    return (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
+	return ((rgb[0] << 16) | (rgb[1] << 8) | rgb[2]);
 }
+// Combine the RGB components into a single integer
+// Shift red 16 bits left, green 8 bits left, and blue stays as it is
 
 void	ft_close(t_game *game, int exit_code)
 {
@@ -183,20 +189,16 @@ void	draw_floor_and_ceiling(t_game *game)
 	{
 		x = 0;
 		while (x < WIDTH)
-		{
-			game->img.data[y * WIDTH + x] = rgbToBitmask(game->ceiling_color);
-			x++;
-		}
+			game->img.data[y * WIDTH + x++] =
+				rgb_to_bitmask(game->ceiling_color);
 		y++;
 	}
 	while (y < HEIGHT)
 	{
 		x = 0;
 		while (x < WIDTH)
-		{
-			game->img.data[y * WIDTH + x] = rgbToBitmask(game->floor_color);
-			x++;
-		}
+			game->img.data[y * WIDTH + x++] =
+				rgb_to_bitmask(game->floor_color);
 		y++;
 	}
 }
@@ -363,8 +365,8 @@ void	player_init(t_game *game)
 			if (game->map[i][j] == 'N' || game->map[i][j] == 'S'
 				|| game->map[i][j] == 'E' || game->map[i][j] == 'W')
 			{
-				game->player.x = i;
-				game->player.y = j;
+				game->player.x = i + 0.5;
+				game->player.y = j + 0.5;
 				printf("Player position: %f, %f\n", game->player.x, game->player.y);
 				if (game->map[i][j] == 'N')
 				{
@@ -431,47 +433,6 @@ void	load_texture(t_game *game, int tex_index, char *path, void *mlx)
 	tex->height = height;
 }
 
-// TODO: remove hardcoded values once transitioned to reading cub file
-void	game_init(t_game *game)
-{
-	int map[ROWS][COLS] = {
-	{' ', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-	{1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	{1, 0, 'N', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	{1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
-	};
-	game->map = malloc(ROWS * sizeof(int*));
-	if (game->map == NULL)
-		ft_close(game, EXIT_FAILURE);
-    for (int i = 0; i < ROWS; ++i)
-	{
-        game->map[i] = malloc(COLS * sizeof(int));
-        if (game->map[i] == NULL)
-		{
-            for (int j = 0; j < i; ++j)
-                free(game->map[j]);
-            free(game->map);
-            ft_close(game, EXIT_FAILURE);
-        }
-    }
-	for (int i = 0; i < ROWS; ++i)
-		ft_memcpy(game->map[i], map[i], COLS * sizeof(int));
-	game->row = ROWS;
-	game->col = COLS;
-	player_init(game);
-	load_texture(game, 0, "./img/so.xpm", game->mlx);
-	load_texture(game, 1, "./img/we.xpm", game->mlx);
-	load_texture(game, 2, "./img/bluestone.xpm", game->mlx);
-	load_texture(game, 3, "./img/purplestone.xpm", game->mlx);
-}
-
 void	window_init(t_game *game)
 {
 	game->mlx = mlx_init();
@@ -500,13 +461,9 @@ int	main_loop(t_game *game)
 
 void	check_arguments(int argc, char **argv, t_game *game)
 {
+	int		fd;
 	char	*extension;
 
-	if (argc == 1)
-	{
-		printf("WARNING, TRANSITION TO .cub FILE ONCE TESTING IS DONE\n");
-		return ;
-	}
 	if (argc != 2)
 	{
 		ft_putstr_fd("Error\nUsage: ", 2);
@@ -522,12 +479,18 @@ void	check_arguments(int argc, char **argv, t_game *game)
 		ft_putstr_fd("\n", 2);
 		ft_close(game, EXIT_FAILURE);
 	}
+	fd = open(argv[1], O_RDONLY);
+	if (fd == -1)
+	{
+		perror("Error\n");
+		ft_close(game, errno);
+	}
+	close(fd);
 }
 
-int	*parse_color(t_game *game, char *str)
+void	parse_color(t_game *game, char *str, char texture)
 {
 	char	**colors;
-	int		*rgb;
 	int		i;
 
 	if (str == NULL)
@@ -550,28 +513,22 @@ int	*parse_color(t_game *game, char *str)
 		ft_freesplit(colors);
 		ft_close(game, EXIT_FAILURE);
 	}
-	rgb = malloc(3 * sizeof(int));
-	if (rgb == NULL)
-	{
-		perror("Error\nMemory allocation failed\n");
-		ft_freesplit(colors);
-		ft_close(game, EXIT_FAILURE);
-	}
 	i = 0;
 	while (i < 3)
 	{
-		rgb[i] = atoi(colors[i]);
-		i++;
-		if (rgb[i] < 0 || rgb[i] > 255)
+		if (texture == 'F')
+			game->floor_color[i] = ft_atoi(colors[i]);
+		else if (texture == 'C')
+			game->ceiling_color[i] = ft_atoi(colors[i]);
+		if (ft_atoi(colors[i]) < 0 || ft_atoi(colors[i]) > 255)
 		{
 			perror("Error\nColor values must be between 0 and 255\n");
-			free(rgb);
 			ft_freesplit(colors);
 			ft_close(game, EXIT_FAILURE);
 		}
+		i++;
 	}
 	ft_freesplit(colors);
-	return (rgb);
 }
 
 // TODO remove this function once testing is done
@@ -746,7 +703,7 @@ void	parse_cub_file(t_game *game)
 			game->row++;
 			mapcheck = 1;
 		}
-		else if (split_line[0] != NULL && split_line[1] != NULL && mapcheck == 0)
+		else if (split_line[0] && split_line[1] && mapcheck == 0)
 		{
 			if (ft_strcmp(split_line[0], "NO") == 0)
 				game->textures[0].path = ft_strdup(split_line[1]);
@@ -757,9 +714,9 @@ void	parse_cub_file(t_game *game)
 			else if (ft_strcmp(split_line[0], "WE") == 0)
 				game->textures[3].path = ft_strdup(split_line[1]);
 			else if (ft_strcmp(split_line[0], "F") == 0)
-				game->floor_color = parse_color(game, split_line[1]);
+				parse_color(game, split_line[1], 'F');
 			else if (ft_strcmp(split_line[0], "C") == 0)
-				game->ceiling_color = parse_color(game, split_line[1]);
+				parse_color(game, split_line[1], 'C');
 			else
 			{
 				ft_putstr_fd("Error\nInvalid param line in .cub file\n", 2);
@@ -781,16 +738,16 @@ void	parse_cub_file(t_game *game)
     game->map = malloc(game->row * sizeof(int *));
 	if (game->map == NULL)
 	{
-		perror("Error\nMemory allocation failed\n");
+		ft_putstr_fd("Error\nMemory allocation failed\n", 2);
 		ft_close(game, EXIT_FAILURE);
 	}
 	i = 0;
-	while (i < game->col)
+	while (i < game->row)
 	{
 		game->map[i] = malloc(game->col * sizeof(int));
-		if (game->map[i] == NULL)
+		if (!game->map[i])
 		{
-			perror("Error\nMemory allocation failed\n");
+			ft_putstr_fd("Error\nMemory allocation failed\n", 2);
 			ft_close(game, EXIT_FAILURE);
 		}
 		i++;
@@ -843,7 +800,7 @@ void	parse_cub_file(t_game *game)
 		game->ceiling_color[1], game->ceiling_color[2]);
 }
 
-// TODO: once parser is done properly, remove if loop for argv
+// game with single pointer will give error
 void	init_game(t_game **game, char **argv)
 {
 	int		i;
@@ -861,8 +818,6 @@ void	init_game(t_game **game, char **argv)
 	(*game)->read_map = NULL;
 	(*game)->img.img = NULL;
 	(*game)->img.data = NULL;
-	(*game)->floor_color = NULL;
-	(*game)->ceiling_color = NULL;
 	(*game)->img.size_l = 0;
 	(*game)->img.bpp = 0;
 	(*game)->img.endian = 0;
@@ -876,40 +831,32 @@ void	init_game(t_game **game, char **argv)
 	while (i < 4)
 	{
 		(*game)->textures[i].data = NULL;
+		(*game)->textures[i].img = NULL;
 		(*game)->textures[i].width = 0;
 		(*game)->textures[i].height = 0;
 		i++;
 	}
 	window_init(*game);
-	if (argv[1])
+	fd = open(argv[1], O_RDONLY);
+	buff = get_next_line(fd);
+	while(buff)
 	{
-		fd = open(argv[1], O_RDONLY);
-		if (fd == -1)
-		{
-			perror("Error opening file");
-			ft_close(*game, errno);
-		}
+		if (ft_strlen(buff) > 0 && buff[ft_strlen(buff) - 1] == '\n')
+			buff[ft_strlen(buff) - 1] = '\0';
+		ft_lstadd_back(&((*game)->read_map), ft_lstnew(buff));
 		buff = get_next_line(fd);
-		while(buff)
-		{
-			if (ft_strlen(buff) > 0 && buff[ft_strlen(buff) - 1] == '\n')
-				buff[ft_strlen(buff) - 1] = '\0';
-			ft_lstadd_back(&((*game)->read_map), ft_lstnew(buff));
-			buff = get_next_line(fd);
-		}
-		close(fd);
-		parse_cub_file(*game);
-		player_init(*game);
-		load_texture(*game, 0, (*game)->textures[0].path, (*game)->mlx);
-		load_texture(*game, 1, (*game)->textures[1].path, (*game)->mlx);
-		load_texture(*game, 2, (*game)->textures[2].path, (*game)->mlx);
-		load_texture(*game, 3, (*game)->textures[3].path, (*game)->mlx);
 	}
-	else
-		game_init(*game);
+	free(buff);
+	close(fd);
+	parse_cub_file(*game);
+	player_init(*game);
+	load_texture(*game, 0, (*game)->textures[0].path, (*game)->mlx);
+	load_texture(*game, 1, (*game)->textures[1].path, (*game)->mlx);
+	load_texture(*game, 2, (*game)->textures[2].path, (*game)->mlx);
+	load_texture(*game, 3, (*game)->textures[3].path, (*game)->mlx);
 	img_init(*game);
 	printf("Player initial position, x: %d, y: %d\n", (int)(*game)->player.x,
-			(int)(*game)->player.y);
+		(int)(*game)->player.y);
 }
 
 int	main(int argc, char **argv)
@@ -917,29 +864,10 @@ int	main(int argc, char **argv)
 	t_game	*game;
 
 	game = NULL;
-	init_game(&game, argv);
 	check_arguments(argc, argv, game);
+	init_game(&game, argv);
 	mlx_hook(game->win, X_EVENT_KEY_PRESS, 1L << 0, &deal_key, game);
 	mlx_hook(game->win, X_EVENT_KEY_EXIT, 1L << 2, &ft_close_game, game);
 	mlx_loop_hook(game->mlx, &main_loop, game);
 	mlx_loop(game->mlx);
 }
-
-// TODO: remove this once testing is done
-/*
-int main(void)
-{
-	void		*mlx_ptr;
-	void		*win_ptr;
-	t_texture	*img_ptr;
-	int			width;
-	int			height;
-
-	mlx_ptr = mlx_init();
-	win_ptr = mlx_new_window(mlx_ptr, 800, 600, "My Window");
-	img_ptr = mlx_xpm_file_to_image(mlx_ptr, "./img/we.xpm", &width, &height);
-	mlx_put_image_to_window(mlx_ptr, win_ptr, img_ptr, 100, 100);
-	mlx_loop(mlx_ptr);
-	return (0);
-}
-*/

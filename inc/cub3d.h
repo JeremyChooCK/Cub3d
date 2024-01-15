@@ -6,7 +6,7 @@
 /*   By: jegoh <jegoh@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 21:34:32 by jegoh             #+#    #+#             */
-/*   Updated: 2024/01/15 16:51:46 by jegoh            ###   ########.fr       */
+/*   Updated: 2024/01/15 20:38:46 by jegoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #ifndef CUB3D_H
@@ -102,8 +102,8 @@ typedef struct s_game
 	int			row;
 	int			col;
 	int			**map;
-	int			*floor_color;
-	int			*ceiling_color;
+	int			floor_color[3];
+	int			ceiling_color[3];
 	t_player	player;
 	t_texture	textures[4];
 }	t_game;
