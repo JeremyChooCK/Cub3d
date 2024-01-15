@@ -6,7 +6,7 @@
 /*   By: jegoh <jegoh@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 21:34:32 by jegoh             #+#    #+#             */
-/*   Updated: 2024/01/14 12:07:15 by jegoh            ###   ########.fr       */
+/*   Updated: 2024/01/15 16:51:46 by jegoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #ifndef CUB3D_H
@@ -16,6 +16,7 @@
 # include "mlx.h"
 # include <math.h>
 # include <fcntl.h>
+# include <errno.h>
 # include <unistd.h>
 # include <stdio.h>
 # include <stdlib.h>
@@ -81,6 +82,7 @@ typedef struct s_player
 // Pointer to texture data
 typedef struct s_texture
 {
+	void	*img;
 	int		*data;
 	int		width;
 	int		height;
