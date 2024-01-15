@@ -6,7 +6,7 @@
 /*   By: jegoh <jegoh@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 21:45:15 by jegoh             #+#    #+#             */
-/*   Updated: 2024/01/15 14:24:37 by jegoh            ###   ########.fr       */
+/*   Updated: 2024/01/15 14:42:44 by jegoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include "cub3d.h"
@@ -53,7 +53,7 @@ void	ft_close(t_game *game, int exit_code)
 	exit(exit_code);
 }
 
-int ft_close_game(t_game *game)
+int	ft_close_game(t_game *game)
 {
 	ft_close(game, EXIT_SUCCESS);
 	return (0);
@@ -831,6 +831,8 @@ void	init_game(t_game **game, char **argv)
 	else
 		game_init(*game);
 	img_init(*game);
+	printf("Player initial position, x: %d, y: %d\n", (int)(*game)->player.x,
+			(int)(*game)->player.y);
 }
 
 int	main(int argc, char **argv)
