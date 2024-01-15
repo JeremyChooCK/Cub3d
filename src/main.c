@@ -40,6 +40,22 @@ void	free_game(t_game *game)
 	free(game);
 }
 
+unsigned int rgbToBitmask(int rgb[3]) {
+    // Ensure each color component is within the range of 0-255
+	int	i;
+
+	i = 0;
+	while (i < 3)
+	{
+		if (rgb[i] < 0 || rgb[i] > 255)
+            return 0;
+		i++;
+	}
+    // Combine the RGB components into a single integer
+    // Shift red 16 bits left, green 8 bits left, and blue stays as it is
+    return (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
+}
+
 void	ft_close(t_game *game, int exit_code)
 {
 	int	i;
@@ -157,6 +173,34 @@ void	clear_image(t_game *game)
 	}
 }
 
+void	draw_floor_and_ceiling(t_game *game)
+{
+	int	x;
+	int	y;
+
+	y = 0;
+	while (y < HEIGHT / 2)
+	{
+		x = 0;
+		while (x < WIDTH)
+		{
+			game->img.data[y * WIDTH + x] = rgbToBitmask(game->ceiling_color);
+			x++;
+		}
+		y++;
+	}
+	while (y < HEIGHT)
+	{
+		x = 0;
+		while (x < WIDTH)
+		{
+			game->img.data[y * WIDTH + x] = rgbToBitmask(game->floor_color);
+			x++;
+		}
+		y++;
+	}
+}
+
 void	raycasting(t_game *game)
 {
 	int		x;
@@ -189,6 +233,7 @@ void	raycasting(t_game *game)
 	double	texpos;
 
 	clear_image(game);
+	draw_floor_and_ceiling(game);
 	x = 0;
 	while (x < WIDTH)
 	{
@@ -794,6 +839,8 @@ void	parse_cub_file(t_game *game)
 	is_map_fully_enclosed(game);
 	// TODO remove this once debugging is over.
 	print_game_map(game);
+	printf("Ceiling color: %d, %d, %d\n", game->ceiling_color[0],
+		game->ceiling_color[1], game->ceiling_color[2]);
 }
 
 // TODO: once parser is done properly, remove if loop for argv
