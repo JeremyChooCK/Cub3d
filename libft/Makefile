@@ -1,6 +1,6 @@
 NAME = libft.a
 CC = cc
-CFLAGS = -Wall -Wextra -Werror -Wshadow
+CFLAGS = -Wall -Wextra -Werror -Wshadow -g
 INCLUDE = ../inc
 BUILDDIR = build
 
