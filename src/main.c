@@ -297,6 +297,7 @@ void	player_init(t_game *game)
 
 	i = 0;
 	j = 0;
+	// print_game_map(game);
 	while (i < game->row)
 	{
 		j = 0;
@@ -305,8 +306,9 @@ void	player_init(t_game *game)
 			if (game->map[i][j] == 'N' || game->map[i][j] == 'S'
 				|| game->map[i][j] == 'E' || game->map[i][j] == 'W')
 			{
-				game->player.x = j;
-				game->player.y = i;
+				game->player.x = i;
+				game->player.y = j;
+				printf("Player position: %f, %f\n", game->player.x, game->player.y);
 				if (game->map[i][j] == 'N')
 				{
 					game->player.dir_x = -1;
