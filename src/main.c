@@ -6,7 +6,7 @@
 /*   By: jegoh <jegoh@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 21:45:15 by jegoh             #+#    #+#             */
-/*   Updated: 2024/01/15 14:24:37 by jegoh            ###   ########.fr       */
+/*   Updated: 2024/01/15 17:07:23 by jegoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include "cub3d.h"
@@ -42,18 +42,31 @@ void	free_game(t_game *game)
 
 void	ft_close(t_game *game, int exit_code)
 {
-	if (game->mlx)
+	int	i;
+
+	if (game && game->mlx)
 	{
+		i = 0;
+		while (i < 4)
+		{
+			if (game->textures[i].img)
+			{
+				mlx_destroy_image(game->mlx, game->textures[i].img);
+				game->textures[i].img = NULL;
+			}
+			i++;
+		}
 		if (game->img.img)
 			mlx_destroy_image(game->mlx, game->img.img);
-		mlx_destroy_window(game->mlx, game->win);
+		if (game->win)
+			mlx_destroy_window(game->mlx, game->win);
 		mlx_destroy_display(game->mlx);
 	}
 	free_game(game);
 	exit(exit_code);
 }
 
-int ft_close_game(t_game *game)
+int	ft_close_game(t_game *game)
 {
 	ft_close(game, EXIT_SUCCESS);
 	return (0);
@@ -297,7 +310,6 @@ void	player_init(t_game *game)
 
 	i = 0;
 	j = 0;
-	// print_game_map(game);
 	while (i < game->row)
 	{
 		j = 0;
@@ -355,17 +367,19 @@ void	load_texture(t_game *game, int tex_index, char *path, void *mlx)
 	t_texture	*tex;
 	int			width;
 	int			height;
-	void	*img;
-	int		size_l;
-	int		bpp;
-	int		endian;
+	int			size_l;
+	int			bpp;
+	int			endian;
 
 	tex = &game->textures[tex_index];
-	img = mlx_xpm_file_to_image(mlx, path, &width, &height);
-	game->textures[tex_index].data = (int*)mlx_get_data_addr(img, &bpp, &size_l, &endian);
+	game->textures[tex_index].img =
+		mlx_xpm_file_to_image(mlx, path, &width, &height);
+	game->textures[tex_index].data =
+		(int *)mlx_get_data_addr(
+			game->textures[tex_index].img, &bpp, &size_l, &endian);
 	if (!tex->data)
 	{
-		perror("Error\nUnable to load texture\n");
+		ft_putstr_fd("Error\nUnable to load texture\n", 2);
 		ft_close(game, EXIT_FAILURE);
 	}
 	tex->width = width;
@@ -388,9 +402,9 @@ void	game_init(t_game *game)
 	{1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 	{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
 	};
-    game->map = malloc(ROWS * sizeof(int*));
-    if (game->map == NULL)
-        ft_close(game, EXIT_FAILURE);
+	game->map = malloc(ROWS * sizeof(int*));
+	if (game->map == NULL)
+		ft_close(game, EXIT_FAILURE);
     for (int i = 0; i < ROWS; ++i)
 	{
         game->map[i] = malloc(COLS * sizeof(int));
@@ -428,6 +442,12 @@ void	img_init(t_game *game)
 
 int	main_loop(t_game *game)
 {
+	if (game->player.x < 0 || game->player.x > game->row
+		|| game->player.y < 0 || game->player.y > game->col)
+	{
+		ft_putstr_fd("Error\nPlayer is out of boundary.\n", 2);
+		ft_close(game, EXIT_FAILURE);
+	}
 	raycasting(game);
 	mlx_put_image_to_window(game->mlx, game->win, game->img.img, 0, 0);
 	return (0);
@@ -791,8 +811,11 @@ void	init_game(t_game **game, char **argv)
 	}
 	(*game)->mlx = NULL;
 	(*game)->win = NULL;
+	(*game)->read_map = NULL;
 	(*game)->img.img = NULL;
 	(*game)->img.data = NULL;
+	(*game)->floor_color = NULL;
+	(*game)->ceiling_color = NULL;
 	(*game)->img.size_l = 0;
 	(*game)->img.bpp = 0;
 	(*game)->img.endian = 0;
@@ -814,6 +837,11 @@ void	init_game(t_game **game, char **argv)
 	if (argv[1])
 	{
 		fd = open(argv[1], O_RDONLY);
+		if (fd == -1)
+		{
+			perror("Error opening file");
+			ft_close(*game, errno);
+		}
 		buff = get_next_line(fd);
 		while(buff)
 		{
@@ -833,6 +861,8 @@ void	init_game(t_game **game, char **argv)
 	else
 		game_init(*game);
 	img_init(*game);
+	printf("Player initial position, x: %d, y: %d\n", (int)(*game)->player.x,
+			(int)(*game)->player.y);
 }
 
 int	main(int argc, char **argv)
@@ -840,8 +870,8 @@ int	main(int argc, char **argv)
 	t_game	*game;
 
 	game = NULL;
-	check_arguments(argc, argv, game);
 	init_game(&game, argv);
+	check_arguments(argc, argv, game);
 	mlx_hook(game->win, X_EVENT_KEY_PRESS, 1L << 0, &deal_key, game);
 	mlx_hook(game->win, X_EVENT_KEY_EXIT, 1L << 2, &ft_close_game, game);
 	mlx_loop_hook(game->mlx, &main_loop, game);
