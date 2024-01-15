@@ -6,7 +6,7 @@
 /*   By: jegoh <jegoh@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 21:45:15 by jegoh             #+#    #+#             */
-/*   Updated: 2024/01/15 22:15:11 by jegoh            ###   ########.fr       */
+/*   Updated: 2024/01/15 23:17:56 by jegoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include "cub3d.h"
@@ -417,8 +417,20 @@ void	load_texture(t_game *game, int tex_index, char *path, void *mlx)
 	int			size_l;
 	int			bpp;
 	int			endian;
+	int			fd;
 
 	tex = &game->textures[tex_index];
+    fd = open(path, O_RDONLY);
+    if (fd == -1)
+    {
+        perror("Error");
+        ft_putstr_fd("\n", 2);
+        ft_putstr_fd(path, 2);
+        ft_putstr_fd("\n", 2);
+    	close(fd);
+        ft_close(game, errno);
+    }
+    close(fd);
 	game->textures[tex_index].img =
 		mlx_xpm_file_to_image(mlx, path, &width, &height);
 	game->textures[tex_index].data =
@@ -482,13 +494,17 @@ void	check_arguments(int argc, char **argv, t_game *game)
 	fd = open(argv[1], O_RDONLY);
 	if (fd == -1)
 	{
-		perror("Error\n");
+		perror("Error");
+		ft_putstr_fd("\n", 2);
+		ft_putstr_fd(argv[1], 2);
+		ft_putstr_fd("\n", 2);
+		close(fd);
 		ft_close(game, errno);
 	}
 	close(fd);
 }
 
-void	parse_color(t_game *game, char *str, char texture)
+void	parse_color(t_game *game, char **str, char texture)
 {
 	char	**colors;
 	int		i;
@@ -498,10 +514,11 @@ void	parse_color(t_game *game, char *str, char texture)
 		perror("Error\nInput rgb string is NULL\n");
 		ft_close(game, EXIT_FAILURE);
 	}
-	colors = ft_split(str, ',');
+	colors = ft_split(str[1], ',');
 	if (colors == NULL)
 	{
 		perror("Error\nMemory allocation failed\n");
+		ft_freesplit(str);
 		ft_close(game, EXIT_FAILURE);
 	}
 	i = 0;
@@ -510,7 +527,10 @@ void	parse_color(t_game *game, char *str, char texture)
 	if (i != 3)
 	{
 		perror("Error\nIncorrect number of color values\n");
-		ft_freesplit(colors);
+		if (str)
+			ft_freesplit(str);
+		if (colors)
+			ft_freesplit(colors);
 		ft_close(game, EXIT_FAILURE);
 	}
 	i = 0;
@@ -523,6 +543,7 @@ void	parse_color(t_game *game, char *str, char texture)
 		if (ft_atoi(colors[i]) < 0 || ft_atoi(colors[i]) > 255)
 		{
 			perror("Error\nColor values must be between 0 and 255\n");
+			ft_freesplit(str);
 			ft_freesplit(colors);
 			ft_close(game, EXIT_FAILURE);
 		}
@@ -557,7 +578,22 @@ void	print_game_map(t_game *game)
 	}
 }
 
-void	find_player_position(t_game *game, int *playerx, int *playery)
+void	free_visited_array(t_game *game, int **visited)
+{
+	int	i;
+
+	i = 0;
+	while (i < game->row)
+	{
+		if (visited[i])
+			free(visited[i]);
+		i++;
+	}
+	free(visited);
+}
+
+void	find_player_position(
+	t_game *game, int *playerx, int *playery, int **visited)
 {
 	int	i;
 	int	j;
@@ -575,6 +611,7 @@ void	find_player_position(t_game *game, int *playerx, int *playery)
 					|| j == 0 || j == game->col - 1)
 				{
 					perror("Error\nPlayer location is OOB\n");
+					free_visited_array(game, visited);
                 	ft_close(game, EXIT_FAILURE);
 				}
 				*playerx = i;
@@ -595,6 +632,7 @@ void	flood_fill(t_game *game, int x, int y, int **visited)
 		|| game->map[x][y] == ' ')
 	{
 		ft_putstr_fd("Error\nMap is not enclosed\n", 2);
+		free_visited_array(game, visited);
 		ft_close(game, EXIT_FAILURE);
 	}
 	visited[x][y] = 1;
@@ -637,16 +675,6 @@ int	**create_visited_array(t_game *game)
 	return (visited);
 }
 
-void	free_visited_array(t_game *game, int **visited)
-{
-	int	i;
-
-	i = 0;
-	while (i < game->row)
-		free(visited[i++]);
-	free(visited);
-}
-
 void	is_map_fully_enclosed(t_game *game)
 {
 	int	**visited;
@@ -656,7 +684,7 @@ void	is_map_fully_enclosed(t_game *game)
 	visited = create_visited_array(game);
 	playerx = 1;
 	playery = 1;
-	find_player_position(game, &playerx, &playery);
+	find_player_position(game, &playerx, &playery, visited);
 	flood_fill(game, playerx, playery, visited);
 	free_visited_array(game, visited);
 }
@@ -682,11 +710,17 @@ void	parse_cub_file(t_game *game)
 	{
 		line = current->content;
 		split_line = ft_split(line, ' ');
+		if (!split_line)
+		{
+			ft_putstr_fd("Error\nFailed to split line\n", 2);
+			ft_close(game, EXIT_FAILURE);
+		}
 		if (mapcheck == 1)
 		{
 			if (ft_strlen(line) == 0)
 			{
 				perror("Error\nEmpty line in .cub map file\n");
+				ft_freesplit(split_line);
 				ft_close(game, EXIT_FAILURE);
 			}
 			ft_strcpy(temp_map[game->row], line);
@@ -714,14 +748,19 @@ void	parse_cub_file(t_game *game)
 			else if (ft_strcmp(split_line[0], "WE") == 0)
 				game->textures[3].path = ft_strdup(split_line[1]);
 			else if (ft_strcmp(split_line[0], "F") == 0)
-				parse_color(game, split_line[1], 'F');
+				parse_color(game, split_line, 'F');
 			else if (ft_strcmp(split_line[0], "C") == 0)
-				parse_color(game, split_line[1], 'C');
+				parse_color(game, split_line, 'C');
 			else
 			{
 				ft_putstr_fd("Error\nInvalid param line in .cub file\n", 2);
 				ft_putstr_fd(line, 2);
 				ft_putstr_fd("\n", 2);
+				ft_freesplit(split_line);
+				game->textures[0].path = NULL;
+				game->textures[1].path = NULL;
+				game->textures[2].path = NULL;
+				game->textures[3].path = NULL;
 				ft_close(game, EXIT_FAILURE);
 			}
 		}
@@ -730,6 +769,7 @@ void	parse_cub_file(t_game *game)
 			ft_putstr_fd("Error\nInvalid line in .cub file\n", 2);
 			ft_putstr_fd(line, 2);
 			ft_putstr_fd("\n", 2);
+			ft_freesplit(split_line);
 			ft_close(game, EXIT_FAILURE);
 		}
 		ft_freesplit(split_line);
@@ -763,7 +803,9 @@ void	parse_cub_file(t_game *game)
 				player_count++;
 			if (player_count > 1)
 			{
-				perror("Error\nMultiple players in map\n");
+				ft_putstr_fd("Error\nMultiple players in map\n", 2);
+				ft_putstr_fd(temp_map[i], 2);
+				ft_putstr_fd("\n", 2);
 				ft_close(game, EXIT_FAILURE);
 			}
 			if (temp_map[i][j] == '0')
@@ -816,6 +858,7 @@ void	init_game(t_game **game, char **argv)
 	(*game)->mlx = NULL;
 	(*game)->win = NULL;
 	(*game)->read_map = NULL;
+	(*game)->map = NULL;
 	(*game)->img.img = NULL;
 	(*game)->img.data = NULL;
 	(*game)->img.size_l = 0;

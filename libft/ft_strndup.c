@@ -6,21 +6,19 @@
 /*   By: jechoo <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/07 10:39:28 by jechoo            #+#    #+#             */
-/*   Updated: 2024/01/07 13:00:05 by jegoh            ###   ########.fr       */
+/*   Updated: 2024/01/15 22:30:19 by jegoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include "libft.h"
 
 char	*ft_strndup(const char *s, size_t n)
 {
-	size_t	len;
-	char	*new_str;
+	char	*str;
 
-	len = ft_strnlen(s, n);
-	new_str = malloc(len + 1);
-	if (new_str == NULL)
+	str = (char *)malloc(sizeof(char) * n + 1);
+	if (str == NULL)
 		return (NULL);
-	ft_memcpy(new_str, s, len);
-	new_str[len] = '\0';
-	return (new_str);
+	str = ft_strncpy(str, s, n);
+	str[n] = '\0';
+	return (str);
 }
