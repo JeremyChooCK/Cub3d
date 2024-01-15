@@ -6,7 +6,7 @@
 /*   By: jegoh <jegoh@student.42singapore.sg>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 21:45:15 by jegoh             #+#    #+#             */
-/*   Updated: 2024/01/15 13:34:51 by jegoh            ###   ########.fr       */
+/*   Updated: 2024/01/15 14:24:37 by jegoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include "cub3d.h"
@@ -14,18 +14,22 @@
 // TODO: update this function to fix memory leaks, need to free texture and map
 void	free_game(t_game *game)
 {
+	int	i;
+
 	if (game == NULL)
 		return ;
 	if (game->mlx)
 		free(game->mlx);
-    if (game->read_map)
-        free(game->read_map);
-    if (game->map)
-    {
-		for (int i = 0; i < game->row; i++)
+	if (game->read_map)
+		free(game->read_map);
+	if (game->map)
+	{
+		i = 0;
+		while (i < game->row)
 		{
 			if (game->map[i])
 				free(game->map[i]);
+			i++;
 		}
 		free(game->map);
 	}
@@ -510,6 +514,7 @@ void	print_game_map(t_game *game)
 	int	j;
 
 	i = 0;
+	printf("Treat '.' as empty space\n");
 	while (i < game->row)
 	{
 		j = 0;
@@ -517,6 +522,8 @@ void	print_game_map(t_game *game)
 		{
 			if (game->map[i][j] == 1 || game->map[i][j] == 0)
 				printf("%d", game->map[i][j]);
+			else if (game->map[i][j] == ' ')
+				printf(".");
 			else
 				printf("%c", game->map[i][j]);
 			j++;
