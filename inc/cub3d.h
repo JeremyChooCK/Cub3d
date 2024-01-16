@@ -101,6 +101,68 @@ typedef struct s_point
 	double	y;
 }	t_point;
 
+typedef struct
+{
+	int		hit;
+	int		side;
+	int		mapx;
+	int		mapy;
+	int		stepx;
+	int		stepy;
+	int		lineheight;
+	int		drawstart;
+	int		drawend;
+	int		texnum;
+	int		texwidth;
+	int		texheight;
+	int		texx;
+	int		texy;
+	int		color;
+	double	camerax;
+	double	raydirx;
+	double	raydiry;
+	double	sidedistx;
+	double	sidedisty;
+	double	deltadistx;
+	double	deltadisty;
+	double	perpwalldist;
+	double	wallx;
+	double	step;
+	double	texpos;
+} t_raycasting;
+
+typedef struct
+{
+	int			width;
+	int			height;
+	int			size_l;
+	int			bpp;
+	int			endian;
+	int			fd;
+} t_load_texture_vars;
+
+typedef struct
+{
+	char	temp_map[1000][1000];
+	char	*line;
+	char	**split_line;
+	int		i;
+	int		j;
+	int		player_count;
+	int		mapcheck;
+	t_map	*current;
+} t_cub;
+
+typedef struct
+{
+	double	leftx;
+	double	lefty;
+	double	rightx;
+	double	righty;
+	double	olddirx;
+	double	oldplanex;
+} t_dealkey_vars;
+
 void	ft_close(t_game *game, int exit_code);
 int		deal_key(int key_code, t_game *game);
 void	clear_image(t_game *game);
