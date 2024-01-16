@@ -39,25 +39,16 @@
 # define MOVE_SPEED 0.1
 # define ROT_SPEED 0.05
 
-// TODO: change ROWS and COLS to be dynamic
 # define ROWS 11
 # define COLS 15
-//# define WIDTH 480
 # define WIDTH 1280
-//# define HEIGHT 352
 # define HEIGHT 720
 
-// Red:   Alpha 00, Red FF, Green 00, Blue 00
 # define RED 0x00FF0000
-// Green: Alpha 00, Red 00, Green FF, Blue 00
 # define GREEN 0x0000FF00
-// Blue:  Alpha 00, Red 00, Green 00, Blue FF
 # define BLUE 0x000000FF
-// White: Alpha 00, Red FF, Green FF, Blue FF
 # define WHITE 0x00FFFFFF
-// Black: Alpha 00, Red 00, Green 00, Blue 00
 # define BLACK 0x00000000
-// Yellow: Alpha 00, Red FF, Green FF, Blue 00
 # define YELLOW 0x00FFFF00
 
 typedef struct s_img
@@ -89,10 +80,6 @@ typedef struct s_texture
 	char	*path;
 }	t_texture;
 
-// textures[0] north
-// textures[1] south
-// textures[2] east
-// textures[3] west
 typedef struct s_game
 {
 	void		*mlx;
